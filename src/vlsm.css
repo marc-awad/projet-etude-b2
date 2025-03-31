@@ -33,7 +33,6 @@ h3 {
 
 #boxadresses {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    border: 1px solid #969da2;
     width: 60%;
     border-radius: 20px;
     display: flex;
@@ -98,7 +97,6 @@ h3 {
     border: 0;
     padding-left: 1rem;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1) inset;
-    border: 1px solid rgba(0, 0, 0, 0.5);
     font-size: 1.2rem;
     transition: all 0.3s ease;
     background-color: #f8f9fa;
@@ -118,7 +116,6 @@ h3 {
 #para {
     margin-top: 2rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(0, 0, 0, 0.5);
     width: 60%;
     border-radius: 20px;
     display: flex;
@@ -141,7 +138,6 @@ h3 {
 
 #boxzone {
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1) inset;
-    border: 1px solid rgba(0, 0, 0, 0.5);
     width: 100%;
     border-radius: 15px;
     height: 390px;
@@ -183,7 +179,6 @@ h3 {
     height: 130px;
     align-items: center;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(0, 0, 0, 0.5);
     margin: 2.5vh 7.5%;
     border-radius: 15px;
     background-color: white;
@@ -206,7 +201,6 @@ h3 {
     border: 0;
     padding-left: 1rem;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1) inset;
-    border: 1px solid rgba(0, 0, 0, 0.5);
     font-size: 1rem;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-weight: bold;
@@ -231,7 +225,6 @@ h3 {
     padding: 40px;
     padding-top: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(0, 0, 0, 0.5);
     border-radius: 20px;
     margin: 0 5%;
     margin-bottom: 4vh;
@@ -257,7 +250,6 @@ h3 {
 .line:hover {
     background-color: #ecf0f1;
     transform: translateY(-2px);
-    border: 1px solid rgba(0, 0, 0, 0.5);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
 }
 
@@ -271,7 +263,6 @@ h3 {
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    margin-right: 1rem;
     background-color: #e74c3c;
     color: white;
     font-size: 1.2rem;
