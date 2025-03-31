@@ -1,6 +1,7 @@
 * {
     box-sizing: border-box;
-    /* Applique border-box à tous les éléments */
+    margin: 0;
+    padding: 0;
 }
 
 body {
@@ -9,36 +10,63 @@ body {
     align-items: center;
     flex-direction: column;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fa;
+    padding: 2rem;
+    color: #333;
+    line-height: 1.6;
 }
 
+h1 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+    letter-spacing: 1px;
+}
 
-
-
+h3 {
+    color: #7f8c8d;
+    margin-bottom: 2rem;
+    font-weight: 400;
+    text-align: center;
+    max-width: 800px;
+}
 
 #boxadresses {
-    box-shadow: black 0px 0px 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid #cbcbcb;
     width: 60%;
     border-radius: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    background-color: white;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .mainbutton {
     margin-top: 1rem;
     margin-bottom: 1rem;
     width: 20%;
+    min-width: 120px;
     border-radius: 10px;
-    background-color: white;
+    background-color: #3498db;
+    color: white;
     font-size: 1.2rem;
     padding: 0.7rem;
     cursor: pointer;
     border: 0;
-    box-shadow: black 0px 0px 10px;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    transition: all 0.3s ease;
+}
+
+.mainbutton:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
 }
 
 #inputs {
-
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -47,7 +75,6 @@ body {
     padding-bottom: 1vh;
     height: 480px;
     transition: height 0.35s ease;
-
 }
 
 .inputligne {
@@ -55,29 +82,42 @@ body {
     margin-top: 2rem;
     flex-direction: row;
     width: 100%;
-    justify-content: end;
+    justify-content: space-between;
+    align-items: center;
     padding-left: 0.5rem;
-    font-size: 1.5vw;
-    font-weight: bold;
-
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #34495e;
 }
 
 .inputligne input {
-    margin-right: 10px;
-    width: 30vw;
+    width: 55%;
     border-radius: 10px;
+    height: 50px;
     margin: 0 2rem;
     border: 0;
-
     padding-left: 1rem;
-    box-shadow: black inset 0px 0px 10px;
-    font-size: 1.4rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1) inset;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
 }
 
+.inputligne input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #3498db, 0 0 10px rgba(52, 152, 219, 0.3);
+    background-color: white;
+}
+
+.inputligne input::placeholder {
+    color: #bdc3c7;
+    font-style: italic;
+}
 
 #para {
-    margin-top: 3vh;
-    box-shadow: black 0px 0px 10px;
+    margin-top: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid #cbcbcb;
     width: 60%;
     border-radius: 20px;
     display: flex;
@@ -87,60 +127,51 @@ body {
     text-align: center;
     transition: height 0.55s ease;
     height: 500px;
-    padding-bottom: 4vh;
     overflow: hidden;
     padding: 40px;
     padding-top: 0;
-
+    background-color: white;
 }
 
 #para #envoyer {
-
     margin: 0 40%;
     margin-top: 2vh;
 }
 
 #boxzone {
-    box-shadow: black inset 0px 0px 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1) inset;
     width: 100%;
-    border-radius: 10px;
+    border-radius: 15px;
     height: 390px;
     overflow-y: auto;
     margin-top: 37px;
-    padding-left: 0.5vw;
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
     transition: height 0.55s ease;
-    font-weight: bold;
-
-
+    font-weight: 500;
+    background-color: #f8f9fa;
 }
 
 #boxzone::-webkit-scrollbar {
-    width: 12px;
-    /* Largeur de la barre de défilement */
+    width: 8px;
 }
 
 #boxzone::-webkit-scrollbar-track {
     background: transparent;
-    /* Fond de la piste invisible */
     border-radius: 10px;
-    /* Coins arrondis */
 }
 
 #boxzone::-webkit-scrollbar-thumb {
-    background: rgba(136, 136, 136, 0.8);
-    /* Couleur de la barre de défilement */
+    background: rgba(52, 152, 219, 0.5);
     border-radius: 10px;
-    /* Coins arrondis */
 }
 
 #boxzone::-webkit-scrollbar-thumb:hover {
-    background: rgba(85, 85, 85, 0.8);
-    /* Couleur au survol */
+    background: rgba(52, 152, 219, 0.8);
 }
 
 #boxconf {
@@ -149,10 +180,11 @@ body {
     width: 85%;
     height: 130px;
     align-items: center;
-    box-shadow: black 0px 0px 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid #cbcbcb;
     margin: 2.5vh 7.5%;
-    border-radius: 6px;
-
+    border-radius: 15px;
+    background-color: white;
 }
 
 #boxnh {
@@ -161,25 +193,27 @@ body {
     width: 95%;
     justify-content: center;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-
 }
 
 #boxnh input {
     margin-right: 10px;
     width: 80%;
-    height: 35px;
-    border-radius: 4px;
+    height: 45px;
+    border-radius: 10px;
     margin: 0 2rem;
     border: 0;
-
     padding-left: 1rem;
-    box-shadow: black inset 0px 0px 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1) inset;
     font-size: 1rem;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-weight: bold;
+    background-color: #f8f9fa;
+}
 
-
-
+#boxnh input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #3498db, 0 0 10px rgba(52, 152, 219, 0.3);
+    background-color: white;
 }
 
 #resultbox {
@@ -191,14 +225,14 @@ body {
     text-align: center;
     transition: height 0.55s ease;
     font-weight: bold;
-
-
     padding: 40px;
-    padding-top: 0;
-    box-shadow: black 0px 0px 10px;
+    padding-top: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid #cbcbcb;
     border-radius: 20px;
     margin: 0 5%;
     margin-bottom: 4vh;
+    background-color: white;
 }
 
 .line {
@@ -207,36 +241,66 @@ body {
     width: 100%;
     justify-content: space-between;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 1vw;
+    font-size: 1rem;
     text-align: center;
     margin-top: 2rem;
     font-weight: bold;
+    padding: 1rem;
+    border-radius: 10px;
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+}
 
+.line:hover {
+    background-color: #ecf0f1;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
 }
 
 .line p {
-
     width: 33%;
     margin: 0 2rem;
-
-
+    color: #2c3e50;
 }
 
 #supprimer {
-
-    width: 4vh;
-    height: 4vh;
+    width: 40px;
+    height: 40px;
     border-radius: 10px;
-    background-color: white;
+    margin-right: 1rem;
+    background-color: #e74c3c;
+    color: white;
     font-size: 1.2rem;
-    padding: 0.7rem;
     cursor: pointer;
     border: 0;
-    box-shadow: black inset  0px 0px 5px;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
     text-align: center;
     display: flex;
     justify-content: center;
     align-items: center;
     font-weight: bold;
-    padding-bottom: 1.5vh;
+    transition: all 0.3s ease;
+}
+
+#supprimer:hover {
+    background-color: #c0392b;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+}
+
+/* Ajout de responsive design pour les écrans plus petits */
+@media screen and (max-width: 992px) {
+    #boxadresses, #para, #resultbox {
+        width: 90%;
+    }
+
+    .inputligne {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .inputligne input {
+        width: 90%;
+        margin: 1rem 0;
+    }
 }
