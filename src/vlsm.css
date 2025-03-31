@@ -33,6 +33,7 @@ h3 {
 
 #boxadresses {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid #cbcbcb;
     width: 60%;
     border-radius: 20px;
     display: flex;
@@ -116,6 +117,7 @@ h3 {
 #para {
     margin-top: 2rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid #cbcbcb;
     width: 60%;
     border-radius: 20px;
     display: flex;
@@ -179,6 +181,7 @@ h3 {
     height: 130px;
     align-items: center;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid #cbcbcb;
     margin: 2.5vh 7.5%;
     border-radius: 15px;
     background-color: white;
@@ -225,6 +228,7 @@ h3 {
     padding: 40px;
     padding-top: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid #cbcbcb;
     border-radius: 20px;
     margin: 0 5%;
     margin-bottom: 4vh;
@@ -263,6 +267,7 @@ h3 {
     width: 40px;
     height: 40px;
     border-radius: 10px;
+    margin-right: 1rem;
     background-color: #e74c3c;
     color: white;
     font-size: 1.2rem;
