@@ -379,7 +379,9 @@ valider.addEventListener('click', () => {
 envoyer.addEventListener('click', () => {
     // Réinitialiser le tableau des résultats pour une nouvelle exécution
     resultsArray = [];
-    
+    nbadress = 0;  // Ajouter cette ligne
+    plusdereseau = false;
+    alrdnomore = false;
     setTimeout(() => {
         window.scrollTo({
             top: document.body.scrollHeight,
