@@ -1,17 +1,33 @@
-// Fonction pour générer le script PowerShell DHCP à partir des résultats
-function genererScriptPowerShell(resultats) {
-  if (!resultats || resultats.length === 0) {
-    return "// Aucun résultat à traiter"
-  }
+// dhcpGenerator.js
 
-  let script = `# Script PowerShell pour configurer un serveur DHCP avec les sous-réseaux calculés
-# Exécuter ce script en tant qu'administrateur sur le serveur cible
-# Généré automatiquement à partir des calculs de sous-réseaux
+/**
+ * Génère un script PowerShell pour configurer un serveur DHCP basé sur des calculs de sous-réseaux
+ * @param {Array} subnetsArray - Tableau d'objets contenant les informations des sous-réseaux
+ * @param {Object} configOptions - Options supplémentaires pour la configuration du serveur DHCP
+ * @returns {string} - Le script PowerShell généré
+ */
+function generateDhcpScript(subnetsArray, configOptions = {}) {
+    // Valeurs par défaut
+    const options = {
+        serverIP: configOptions.serverIP || "192.168.100.10",
+        defaultGateway: configOptions.defaultGateway || "192.168.100.1",
+        networkInterfaceAlias: configOptions.networkInterfaceAlias || "Ethernet",
+        scopeStartOffset: configOptions.scopeStartOffset || 10, // Décalage pour le début de plage
+        scopeEndOffset: configOptions.scopeEndOffset || 5,      // Décalage pour la fin de plage
+        includeDnsServer: configOptions.includeDnsServer || false,
+        dnsServerIP: configOptions.dnsServerIP || "8.8.8.8"
+    };
 
-# Paramètres globaux
-$DHCPServerIP = "192.168.100.10"  # À configurer selon votre environnement
-$DefaultGateway = "192.168.100.1"  # À configurer selon votre environnement
-$NetworkInterfaceAlias = "Ethernet"
+    // Filtrer les sous-réseaux valides (ceux qui n'ont pas de problème de manque d'adresses)
+    const validSubnets = subnetsArray.filter(subnet => !subnet.pasDeReseau);
+
+    if (validSubnets.length === 0) {
+        return "# Aucun sous-réseau valide trouvé pour générer un script DHCP";
+    }
+
+    let powershellScript = `# Script PowerShell pour configurer le serveur DHCP basé sur les calculs de sous-réseaux
+# Généré automatiquement le ${new Date().toLocaleString()}
+# Assurez-vous d'exécuter ce script en tant qu'administrateur sur le serveur cible
 
 # Fonction pour vérifier si l'exécution est en mode administrateur
 function Test-Administrator {
@@ -26,8 +42,17 @@ if (-not (Test-Administrator)) {
     exit
 }
 
+# Paramètres de configuration
+Write-Host "Configuration du serveur DHCP - Paramètres prédéfinis" -ForegroundColor Cyan
+Write-Host "------------------------------------------------------" -ForegroundColor Cyan
+
+$DHCPServerIP = "${options.serverIP}"
+$DefaultGateway = "${options.defaultGateway}"
+$NetworkInterfaceAlias = "${options.networkInterfaceAlias}"
+${options.includeDnsServer ? `$DNSServer = "${options.dnsServerIP}"` : ''}
+
 # Installation du rôle DHCP
-Write-Host "Installation du rôle DHCP et des outils d'administration..." -ForegroundColor Cyan
+Write-Host "\\nInstallation du rôle DHCP et des outils d'administration..." -ForegroundColor Cyan
 try {
     Install-WindowsFeature DHCP -IncludeManagementTools -ErrorAction Stop
     Write-Host "Rôle DHCP installé avec succès." -ForegroundColor Green
@@ -37,18 +62,13 @@ try {
 }
 
 # Configuration de l'adresse IP statique
-Write-Host "Configuration de l'adresse IP statique ($DHCPServerIP)..." -ForegroundColor Cyan
+Write-Host "\\nConfiguration de l'adresse IP statique ($DHCPServerIP)..." -ForegroundColor Cyan
 try {
-    # Vérifier si l'interface réseau existe
-    $netAdapter = Get-NetAdapter | Where-Object { $_.Name -eq $NetworkInterfaceAlias }
-    if (-not $netAdapter) {
-        Write-Host "L'interface '$NetworkInterfaceAlias' n'existe pas. Interfaces disponibles:" -ForegroundColor Yellow
-        Get-NetAdapter | Format-Table Name, InterfaceDescription
-        $NetworkInterfaceAlias = Read-Host "Entrez le nom de l'interface réseau à utiliser"
-    }
+    # Supprimer les configurations IP existantes
+    Remove-NetIPAddress -InterfaceAlias $NetworkInterfaceAlias -Confirm:$false -ErrorAction SilentlyContinue
     
     # Configurer la nouvelle adresse IP
-    New-NetIPAddress -IPAddress $DHCPServerIP -PrefixLength 24 -InterfaceAlias $NetworkInterfaceAlias -DefaultGateway $DefaultGateway -ErrorAction Stop -Confirm:$false
+    New-NetIPAddress -IPAddress $DHCPServerIP -PrefixLength 24 -InterfaceAlias $NetworkInterfaceAlias -DefaultGateway $DefaultGateway -ErrorAction Stop
     
     Write-Host "Configuration IP réussie." -ForegroundColor Green
 } catch {
@@ -56,14 +76,17 @@ try {
     Write-Host "Poursuite du script..." -ForegroundColor Yellow
 }
 
-# Finalisation de l'installation du service DHCP
-Write-Host "Finalisation de l'installation du service DHCP..." -ForegroundColor Cyan
+# Compléter l'installation du service DHCP
+Write-Host "\\nFinalisation de l'installation du service DHCP..." -ForegroundColor Cyan
 try {
     # Création du répertoire pour les sauvegardes DHCP
     $DHCPBackupPath = "$env:SystemRoot\\System32\\dhcp\\backup"
     if (-not (Test-Path $DHCPBackupPath)) {
         New-Item -Path $DHCPBackupPath -ItemType Directory -Force
     }
+    
+    # Configuration du service DHCP
+    Set-ItemProperty -Path HKLM:\\SOFTWARE\\Microsoft\\ServerManager\\Roles\\12 -Name ConfigurationState -Value 2
     
     # Redémarrage du service DHCP
     Restart-Service DHCPServer -ErrorAction Stop
@@ -74,7 +97,7 @@ try {
 }
 
 # Autorisation du serveur DHCP dans Active Directory (si AD est présent)
-Write-Host "Vérification si Active Directory est présent..." -ForegroundColor Cyan
+Write-Host "\\nVérification si Active Directory est présent..." -ForegroundColor Cyan
 $isDomainController = (Get-WmiObject -Class Win32_ComputerSystem).DomainRole -ge 4
 if ($isDomainController) {
     try {
@@ -88,52 +111,58 @@ if ($isDomainController) {
     Write-Host "Active Directory non détecté. Pas besoin d'autoriser le serveur DHCP." -ForegroundColor Yellow
 }
 
-# Configuration des étendues DHCP pour chaque sous-réseau
-Write-Host "Configuration des étendues DHCP pour chaque sous-réseau..." -ForegroundColor Cyan\n\n`
+# Configuration des étendues DHCP
+Write-Host "\\nConfiguration des étendues DHCP..." -ForegroundColor Cyan\n\n`;
 
-  // Création d'une étendue pour chaque sous-réseau valide
-  resultats.forEach((resultat, index) => {
-    if (!resultat.pasDeReseau) {
-      const scopeName = resultat.nom.replace(/['"`]/g, "") // Éviter les caractères problématiques
-      const scopeId = resultat.adresseReseau.join(".")
-      const startRange = resultat.premièreAdresse.join(".")
-      const endRange = resultat.dernièreAdresse.join(".")
-      const subnetMask = resultat.masque.join(".")
-
-      script += `# Configuration pour le sous-réseau "${scopeName}"
-$DHCPScopeID_${index} = "${scopeId}"
-$DHCPScopeName_${index} = "${scopeName}"
-$DHCPStartRange_${index} = "${startRange}"
-$DHCPEndRange_${index} = "${endRange}"
-$DHCPSubnetMask_${index} = "${subnetMask}"
-
+    // Ajouter chaque étendue DHCP pour les sous-réseaux valides
+    validSubnets.forEach((subnet, index) => {
+        const scopeID = subnet.adresseReseau.join('.');
+        const subnetMask = subnet.masque.join('.');
+        const scopeName = subnet.nom;
+        
+        // Calculer les plages d'adresses (début et fin)
+        let startRange = [...subnet.premièreAdresse];
+        let endRange = [...subnet.dernièreAdresse];
+        
+        // Appliquer les décalages si possible
+        if (parseInt(startRange[3]) + options.scopeStartOffset < parseInt(endRange[3]) - options.scopeEndOffset) {
+            startRange[3] = parseInt(startRange[3]) + options.scopeStartOffset;
+            endRange[3] = parseInt(endRange[3]) - options.scopeEndOffset;
+        }
+        
+        powershellScript += `# Configuration de l'étendue ${index + 1}: ${scopeName}
 try {
     # Vérifier si l'étendue existe déjà
-    $existingScope = Get-DhcpServerv4Scope -ScopeId $DHCPScopeID_${index} -ErrorAction SilentlyContinue
+    $existingScope = Get-DhcpServerv4Scope -ScopeId ${scopeID} -ErrorAction SilentlyContinue
     if ($existingScope) {
-        Write-Host "L'étendue $DHCPScopeID_${index} existe déjà. Suppression..." -ForegroundColor Yellow
-        Remove-DhcpServerv4Scope -ScopeId $DHCPScopeID_${index} -Force
+        Write-Host "L'étendue ${scopeID} existe déjà. Suppression..." -ForegroundColor Yellow
+        Remove-DhcpServerv4Scope -ScopeId ${scopeID} -Force
     }
     
     # Création de l'étendue
-    Add-DhcpServerv4Scope -Name $DHCPScopeName_${index} -StartRange $DHCPStartRange_${index} -EndRange $DHCPEndRange_${index} -SubnetMask $DHCPSubnetMask_${index} -State Active -ErrorAction Stop
+    Add-DhcpServerv4Scope -Name "${scopeName}" -StartRange ${startRange.join('.')} -EndRange ${endRange.join('.')} -SubnetMask ${subnetMask} -State Active -ErrorAction Stop
+    Write-Host "Étendue DHCP ${scopeName} créée avec succès." -ForegroundColor Green
     
-    # Configuration des options DHCP (passerelle = premier octet du réseau + .1)
-    $Gateway_${index} = ($DHCPScopeID_${index} -replace "\\d+$", "1")
-    Set-DhcpServerv4OptionValue -ScopeId $DHCPScopeID_${index} -Router $Gateway_${index} -ErrorAction Stop
-    
-    Write-Host "Étendue DHCP $DHCPScopeName_${index} créée avec succès." -ForegroundColor Green
+    # Configuration des options DHCP
+    Set-DhcpServerv4OptionValue -ScopeId ${scopeID} -Router $DefaultGateway`;
+        
+        // Ajouter les serveurs DNS si demandé
+        if (options.includeDnsServer) {
+            powershellScript += ` -DnsServer $DNSServer`;
+        }
+        
+        powershellScript += ` -ErrorAction Stop
+    Write-Host "Options DHCP pour ${scopeName} configurées." -ForegroundColor Green
 } catch {
-    Write-Host "Erreur lors de la configuration de l'étendue DHCP $DHCPScopeName_${index}: $_" -ForegroundColor Red
+    Write-Host "Erreur lors de la configuration de l'étendue DHCP ${scopeName}: $_" -ForegroundColor Red
 }
 
-`
-    }
-  })
+`;
+    });
 
-  script += `
-# Redémarrage du service DHCP
-Write-Host "Redémarrage du service DHCP..." -ForegroundColor Cyan
+    // Ajouter la fin du script
+    powershellScript += `# Redémarrage du service DHCP
+Write-Host "\\nRedémarrage du service DHCP..." -ForegroundColor Cyan
 Restart-Service DHCPServer
 Write-Host "Service DHCP redémarré." -ForegroundColor Green
 
@@ -141,90 +170,76 @@ Write-Host "Service DHCP redémarré." -ForegroundColor Green
 Write-Host "\\nRécapitulatif de la configuration du serveur DHCP:" -ForegroundColor Cyan
 Write-Host "-------------------------------------------" -ForegroundColor Cyan
 Write-Host "Adresse IP du serveur : $DHCPServerIP" -ForegroundColor White
-`
+Write-Host "Passerelle par défaut : $DefaultGateway" -ForegroundColor White
+${options.includeDnsServer ? 'Write-Host "Serveur DNS : $DNSServer" -ForegroundColor White' : ''}
+Write-Host "Nombre d'étendues configurées : ${validSubnets.length}" -ForegroundColor White
 
-  // Ajout des informations de récapitulation pour chaque étendue
-  let compteurEtendues = 0
-  resultats.forEach((resultat, index) => {
-    if (!resultat.pasDeReseau) {
-      script += `Write-Host "Étendue ${
-        compteurEtendues + 1
-      }: $DHCPScopeName_${index} ($DHCPStartRange_${index} - $DHCPEndRange_${index})" -ForegroundColor White\n`
-      compteurEtendues++
-    }
-  })
+# Liste des étendues configurées
+Get-DhcpServerv4Scope | Format-Table -Property ScopeId, Name, SubnetMask, StartRange, EndRange, State -AutoSize
 
-  script += `Write-Host "-------------------------------------------" -ForegroundColor Cyan
+Write-Host "-------------------------------------------" -ForegroundColor Cyan
 Write-Host "\\nLa configuration du serveur DHCP est terminée." -ForegroundColor Green
-Write-Host "Pour vérifier la configuration, ouvrez le gestionnaire DHCP (dhcpmgmt.msc)" -ForegroundColor Yellow`
+Write-Host "Pour vérifier la configuration, ouvrez le gestionnaire DHCP (dhcpmgmt.msc)" -ForegroundColor Yellow`;
 
-  return script
+    return powershellScript;
 }
 
-// Fonction pour exporter le script PowerShell généré dans un fichier
-function exporterScriptPowerShell(script, nomFichier = "configurer_dhcp.ps1") {
-  // Création d'un élément a pour le téléchargement
-  const element = document.createElement("a")
-  element.setAttribute(
-    "href",
-    "data:text/plain;charset=utf-8," + encodeURIComponent(script)
-  )
-  element.setAttribute("download", nomFichier)
-
-  // Simulation du clic pour déclencher le téléchargement
-  element.style.display = "none"
-  document.body.appendChild(element)
-  element.click()
-  document.body.removeChild(element)
-}
-
-// Fonction pour générer le bouton de téléchargement du script PowerShell
-function creerBoutonExportPS() {
-  // Vérifier si resultsArray existe et contient des données
-  if (typeof resultsArray !== "undefined" && resultsArray.length > 0) {
-    // Créer un bouton pour exporter le script PowerShell
-    const btnExportPS = document.createElement("button")
-    btnExportPS.setAttribute("id", "btnExportPS")
-    btnExportPS.setAttribute("class", "mainbutton")
-    btnExportPS.textContent = "Télécharger script PowerShell DHCP"
-
-    // Ajout de l'événement au bouton
-    btnExportPS.addEventListener("click", () => {
-      const scriptPS = genererScriptPowerShell(resultsArray)
-      exporterScriptPowerShell(scriptPS)
-    })
-
-    // Ajouter le bouton à la page
-    document.getElementById("boxzone").appendChild(btnExportPS)
-  }
-}
-
-// Fonction pour intégrer le générateur de script PowerShell
-function integrerGenerateurPS() {
-  // Observer les changements dans boxzone pour ajouter le bouton après les résultats
-  const observer = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-        // Vérifier si un resultbox a été ajouté
-        for (const node of mutation.addedNodes) {
-          if (node.id === "resultbox") {
-            // Si le bouton n'existe pas déjà
-            if (!document.getElementById("btnExportPS")) {
-              // Attendre que tous les résultats soient ajoutés
-              setTimeout(creerBoutonExportPS, 500)
-            }
-          }
-        }
-      }
+/**
+ * Sauvegarde le script PowerShell généré dans un fichier
+ * @param {string} script - Le script PowerShell généré
+ * @param {string} filename - Nom du fichier de sortie (par défaut: dhcp-config.ps1)
+ */
+function saveScriptToFile(script, filename = "dhcp-config.ps1") {
+    try {
+        // Dans un environnement de navigateur, créer un blob et proposer le téléchargement
+        const blob = new Blob([script], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        
+        URL.revokeObjectURL(url);
+        console.log(`Script sauvegardé sous ${filename}`);
+        return true;
+    } catch (error) {
+        console.error("Erreur lors de la sauvegarde du script:", error);
+        return false;
     }
-  })
-
-  // Observer les modifications dans boxzone
-  const boxzone = document.getElementById("boxzone")
-  if (boxzone) {
-    observer.observe(boxzone, { childList: true })
-  }
 }
 
-// Exécuter la fonction d'intégration après le chargement de la page
-window.addEventListener("load", integrerGenerateurPS)
+/**
+ * Génère un script PowerShell à partir des résultats du calculateur de sous-réseaux
+ * @param {Array} resultsArray - Tableau des résultats du calculateur de sous-réseaux
+ * @param {Object} options - Options supplémentaires pour la configuration
+ * @param {boolean} saveToFile - Si true, sauvegarde le script dans un fichier
+ * @param {string} filename - Nom du fichier de sortie (si saveToFile est true)
+ * @returns {string} - Le script PowerShell généré
+ */
+function generateDhcpScriptFromCalculator(resultsArray, options = {}, saveToFile = false, filename = "dhcp-config.ps1") {
+    // Vérifier si resultsArray est valide
+    if (!Array.isArray(resultsArray) || resultsArray.length === 0) {
+        console.error("Erreur: résultats de sous-réseaux invalides ou vides");
+        return "# Erreur: aucun résultat de sous-réseau valide fourni";
+    }
+    
+    // Générer le script
+    const script = generateDhcpScript(resultsArray, options);
+    
+    // Sauvegarder dans un fichier si demandé
+    if (saveToFile) {
+        saveScriptToFile(script, filename);
+    }
+    
+    return script;
+}
+
+// Exporter les fonctions pour les rendre utilisables depuis d'autres fichiers
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        generateDhcpScript,
+        generateDhcpScriptFromCalculator,
+        saveScriptToFile
+    };
+}
