@@ -41,8 +41,9 @@ let plusdereseau = false;
 let alrdnomore = false;
 let inputvide = false;
 let validerform = true;
-// faire disparaitre certains elements au debut
 
+// Tableau pour stocker tous les résultats de chaque itération
+let resultsArray = [];
 
 // fonction qui permet de corriger une adresse 
 //si une valeur dépasse 255 ou devient inferieur à 0
@@ -229,6 +230,7 @@ function inputbox() {
         }
     });
 }
+
 function resultbox(netadress, mask, first, last, broadcast, cidr, name) {
     // div pour mettre tout les resultats
 
@@ -375,6 +377,9 @@ valider.addEventListener('click', () => {
 
 // bouton permettant de valider les informations et de calculer les adresses
 envoyer.addEventListener('click', () => {
+    // Réinitialiser le tableau des résultats pour une nouvelle exécution
+    resultsArray = [];
+    
     setTimeout(() => {
         window.scrollTo({
             top: document.body.scrollHeight,
@@ -413,7 +418,8 @@ envoyer.addEventListener('click', () => {
 
 
         for (let x = 0; x < listbox.length; x++) {
-
+            // Objet pour stocker les résultats de cette itération
+            let iterationResult = {};
 
             // definir l'adresse d'origine si se n'est pas la
             // premiere fois alors elle devient l'adresse du prochain reseau du reseau precedent.
@@ -517,9 +523,6 @@ envoyer.addEventListener('click', () => {
                 broadcast[3] = parseInt(broadcast[3]) - 1
                 correction(broadcast)
                 // definir le nom du sous reseau
-
-
-
             }
             let netname = listbox[x].children[0].children[0].children[1].value
             adressorigin = adressorigin
@@ -536,11 +539,23 @@ envoyer.addEventListener('click', () => {
                 }
             }
 
-
-
+            // Stocker tous les résultats de cette itération dans l'objet
+            iterationResult = {
+                nom: netname,
+                adresseReseau: [...adressorigin],
+                masque: [...mask_decimal],
+                premièreAdresse: [...premieradress],
+                dernièreAdresse: [...dernieradress],
+                broadcast: [...broadcast],
+                cidr: maskval,
+                nombreMachines: machineval,
+                pasDeReseau: plusdereseau
+            };
+            
+            // Ajouter les résultats de cette itération au tableau
+            resultsArray.push(iterationResult);
 
             //afficher les resultats
-
             let testbroadcast = adress.value.split('.')
             boxadresses.style.display = 'none';
             boxzone.style.height = '0';
@@ -561,16 +576,15 @@ envoyer.addEventListener('click', () => {
                 break
             }
         }
+        
+        // Afficher le tableau des résultats dans la console pour vérification
+        console.log("Résultats de tous les sous-réseaux:", resultsArray);
     }
 });
-
-
-
 
 // permet d'assigner le bouton valider à la touche entrée
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         valider.click();
     }
-
-})
+});
