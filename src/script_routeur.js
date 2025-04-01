@@ -78,7 +78,7 @@
 // generateCiscoConfigScript();
 
 const fs = require("fs")
-const path = require("path");
+const path = require("path")
 
 function generateCiscoConfigScript(filename = "cisco_config.py") {
   const pythonCode = `import getpass
@@ -142,20 +142,22 @@ try:
     print("Configuration terminée avec succès!")
 except Exception as e:
     print("Erreur:", e)
-`;
+`
 
   // Créer le dossier output si il n'existe pas
-  const outputDir = path.join(__dirname, 'output');
+  const outputDir = path.join(__dirname, "output")
   if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir);
+    fs.mkdirSync(outputDir)
   }
 
   // Spécifier le chemin complet du fichier à générer dans le dossier output
-  const filePath = path.join(outputDir, filename);
-  
+  const filePath = path.join(outputDir, filename)
+
   // Écrire le fichier Python dans le dossier output
-  fs.writeFileSync(filePath, pythonCode);
-  console.log(`Le fichier ${filename} a été généré avec succès dans le dossier "output".`);
+  fs.writeFileSync(filePath, pythonCode)
+  console.log(
+    `Le fichier ${filename} a été généré avec succès dans le dossier "output".`
+  )
 }
 
 generateCiscoConfigScript()
