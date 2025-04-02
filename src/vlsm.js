@@ -3,6 +3,8 @@ import {
   generateDhcpScriptFromCalculator,
   saveScriptToFile,
 } from "./script_dhcp.js"
+
+import { generateCiscoSerialConfigScript } from "./script_routeur_pyserial.js"
 // les boutons
 let valider = document.getElementById("valider1")
 let envoyer = document.getElementById("envoyer")
@@ -604,6 +606,7 @@ envoyer.addEventListener("click", () => {
 
     // Générer le script DHCP à partir des résultats
     const dhcpScript = generateDhcpScript(resultsArray, dhcpOptions)
+    const pythonScript = generateCiscoSerialConfigScript(resultsArray)
 
     // Fonctions pour les nouveaux boutons (à ajouter juste avant le dernier crochet fermant)
 
@@ -972,8 +975,7 @@ envoyer.addEventListener("click", () => {
       routeurButton.textContent = "ROUTEUR"
       routeurButton.classList.add("mainbutton")
       routeurButton.addEventListener("click", () => {
-        alert("Fonctionnalité ROUTEUR en cours de développement")
-        // Ici vous pourrez ajouter la fonctionnalité ROUTEUR plus tard
+        saveScriptToFile(pythonScript, "config-routeur.py")
       })
 
       // Ajouter les boutons au conteneur
