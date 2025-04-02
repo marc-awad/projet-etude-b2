@@ -579,7 +579,7 @@ envoyer.addEventListener("click", () => {
       boxzone.style.height = "0"
       setTimeout(() => {
         boxzone.style.height = "530px"
-        para.style.height = "600px"
+        para.style.height = "auto"
       }, 500)
       setTimeout(() => {
         para.style.height = "500px"
