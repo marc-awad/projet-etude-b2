@@ -157,7 +157,7 @@ export function saveScriptToFile(script, filename = "dhcp-scopes.ps1") {
         a.click();
         
         URL.revokeObjectURL(url);
-        console.log(`Script sauvegardé sous ${filename}`);
+        console.log(`Script téléchargé sous ${filename}`);
         return true;
     } catch (error) {
         console.error("Erreur lors de la sauvegarde du script:", error);
