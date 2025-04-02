@@ -1,13 +1,11 @@
-export function generateCiscoConfigScript(resultsArray, filename = "cisco_config.py") {
-  // Créer l'en-tête du script Python
-  let pythonCode = `import getpass
+import getpass
 from netmiko import ConnectHandler
 import re
 
 def validate_ip(ip):
-    pattern = r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.'
-    pattern += r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.'
-    pattern += r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.'
+    pattern = r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+    pattern += r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+    pattern += r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
     pattern += r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
     return bool(re.match(pattern, ip))
 
@@ -20,26 +18,15 @@ def get_valid_input(prompt, validation_func=None):
 
 # Information sur les réseaux disponibles
 available_networks = [
-`
-
-  // Ajouter les informations de chaque réseau calculé
-  for (let i = 0; i < resultsArray.length; i++) {
-    const network = resultsArray[i]
-    // Ne pas inclure les réseaux qui n'ont pas assez d'adresses
-    if (network.pasDeReseau) continue
-
-    pythonCode += `    {
-        'nom': "${network.nom}",
-        'adresse_reseau': "${network.adresseReseau.join(".")}",
-        'masque': "${network.masque.join(".")}",
-        'premiere_adresse': "${network.premièreAdresse.join(".")}",
-        'cidr': ${network.cidr},
-        'nombre_machines': ${network.nombreMachines}
-    },\n`
-  }
-
-  // Fermer la liste des réseaux et continuer avec le reste du script
-  pythonCode += `]
+    {
+        'nom': "sous_réseau1",
+        'adresse_reseau': "192.168.0.0",
+        'masque': "255.255.255.0",
+        'premiere_adresse': "192.168.0.1",
+        'cidr': 24,
+        'nombre_machines': 255
+    },
+]
 
 # Demander les informations de connexion
 print("=== Configuration de la connexion au routeur Cisco ===")
@@ -56,16 +43,16 @@ device = {
     'secret': secret
 }
 
-print("\\n=== Réseaux disponibles ===")
+print("\n=== Réseaux disponibles ===")
 for i, network in enumerate(available_networks):
     print(f"{i+1}. {network['nom']} - Réseau: {network['adresse_reseau']}/{network['cidr']} - Machines: {network['nombre_machines']}")
 
 # Configuration des interfaces pour chaque réseau souhaité
 interfaces = []
-print("\\n=== Configuration des interfaces ===")
+print("\n=== Configuration des interfaces ===")
 while True:
     try:
-        choice = input("\\nChoisissez un numéro de réseau (ou 'fin' pour terminer): ")
+        choice = input("\nChoisissez un numéro de réseau (ou 'fin' pour terminer): ")
         if choice.lower() == 'fin':
             break
             
@@ -97,7 +84,7 @@ if not interfaces:
     exit()
 
 try:
-    print(f"\\nConnexion à {host}...")
+    print(f"\nConnexion à {host}...")
     net_connect = ConnectHandler(**device)
     net_connect.enable()
     commands = ["configure terminal"]
@@ -107,33 +94,10 @@ try:
         commands.append("no shutdown")
         commands.append("exit")
     commands.extend(["end", "write memory"])
-    print("\\nApplication de la configuration...")
+    print("\nApplication de la configuration...")
     output = net_connect.send_config_set(commands)
     print(output)
     net_connect.disconnect()
     print("Configuration terminée avec succès!")
 except Exception as e:
     print("Erreur:", e)
-`
-
-  // Créer un Blob avec le code Python
-  const blob = new Blob([pythonCode], { type: "text/plain" })
-
-  // Créer une URL pour le Blob
-  const url = URL.createObjectURL(blob)
-
-  // Créer un élément a pour le téléchargement
-  const downloadLink = document.createElement("a")
-  downloadLink.href = url
-  downloadLink.download = filename
-
-  // Ajouter l'élément au document, cliquer dessus, puis le supprimer
-  document.body.appendChild(downloadLink)
-  downloadLink.click()
-  document.body.removeChild(downloadLink)
-
-  // Libérer l'URL pour éviter les fuites de mémoire
-  setTimeout(() => URL.revokeObjectURL(url), 100)
-
-  return pythonCode
-}
