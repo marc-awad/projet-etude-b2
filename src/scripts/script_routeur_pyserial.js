@@ -1,6 +1,5 @@
 export function generateCiscoSerialConfigScript(
   resultsArray,
-  filename = "cisco_serial_config.py"
 ) {
   // Créer l'en-tête du script Python
   let pythonCode = `import serial

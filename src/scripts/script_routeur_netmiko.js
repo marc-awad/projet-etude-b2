@@ -1,6 +1,5 @@
 export function generateCiscoConfigScript(
   resultsArray,
-  filename = "cisco_config.py"
 ) {
   // Créer l'en-tête du script Python
   let pythonCode = `import getpass
