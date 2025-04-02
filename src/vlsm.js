@@ -13,6 +13,7 @@ let marge = document.getElementById('marge');
 let boxzone = document.getElementById('boxzone');
 let content = document.getElementById('content');
 let para = document.getElementById('para');
+let body = document.getElementById('body');
 
 
 // les champs de textes
@@ -574,7 +575,8 @@ envoyer.addEventListener('click', () => {
                 buttonadd.style.display = 'none';
                 boxzone.style.display = 'block';
             }, 450);
-            resultbox(adressorigin, mask_decimal, premieradress, dernieradress, broadcast, maskval, netname)
+            // resultbox(adressorigin, mask_decimal, premieradress, dernieradress, broadcast, maskval, netname)
+            showTableView();
             if (plusdereseau) {
                 break
             }
@@ -589,16 +591,501 @@ envoyer.addEventListener('click', () => {
             includeDnsServer: true,
             dnsServerIP: "8.8.8.8"
         };
-    
+
         // Générer le script DHCP à partir des résultats
         const dhcpScript = generateDhcpScript(resultsArray, dhcpOptions);
-    
-        // Sauvegarder le script dans un fichier
-        saveScriptToFile(dhcpScript, "config-dhcp.ps1");
-    }
-    
 
-    
+
+        // Fonctions pour les nouveaux boutons (à ajouter juste avant le dernier crochet fermant)
+
+        // Fonction pour télécharger les résultats au format Excel
+        function printResults() {
+            // Créer une nouvelle fenêtre pour l'impression
+            const printWindow = window.open('', '_blank');
+        
+            // Préparer le contenu HTML à imprimer
+            let printContent = `
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; }
+                h1 { text-align: center; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; }
+                tr:nth-child(even) { background-color: #f9f9f9; }
+            </style>
+        </head>
+        <body>
+            <h1>Résultats du découpage VLSM</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nom du réseau</th>
+                        <th>Adresse réseau</th>
+                        <th>Masque</th>
+                        <th>CIDR</th>
+                        <th>Première adresse</th>
+                        <th>Dernière adresse</th>
+                        <th>Broadcast</th>
+                        <th>Nb machines</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+            // Ajouter les données
+            resultsArray.forEach(result => {
+                if (!result.pasDeReseau) {
+                    printContent += `<tr>
+                    <td>${result.nom}</td>
+                    <td>${result.adresseReseau.join('.')}</td>
+                    <td>${result.masque.join('.')}</td>
+                    <td>/${result.cidr}</td>
+                    <td>${result.premièreAdresse.join('.')}</td>
+                    <td>${result.dernièreAdresse.join('.')}</td>
+                    <td>${result.broadcast.join('.')}</td>
+                    <td>${result.nombreMachines}</td>
+                </tr>`;
+                }
+            });
+        
+            printContent += `
+                </tbody>
+            </table>
+        </body>
+        </html>`;
+        
+            // Écrire le contenu dans la nouvelle fenêtre
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+        
+            // Attendre que le contenu soit chargé avant d'imprimer
+            printWindow.onload = function () {
+                printWindow.print();
+            };
+        }
+        
+        // Fonction pour télécharger les résultats en PDF
+        function downloadPDF() {
+            // Vérifier si jsPDF est disponible
+            if (typeof jspdf === 'undefined') {
+                // Si jsPDF n'est pas chargé, l'ajouter dynamiquement
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                document.head.appendChild(script);
+                
+                // Ajouter également html2canvas
+                const html2canvasScript = document.createElement('script');
+                html2canvasScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                document.head.appendChild(html2canvasScript);
+                
+                // Attendre que les scripts soient chargés
+                script.onload = html2canvasScript.onload = function() {
+                    setTimeout(generatePDF, 500);
+                };
+            } else {
+                generatePDF();
+            }
+            
+            function generatePDF() {
+                // Créer un élément div temporaire pour contenir le contenu
+                const tempDiv = document.createElement('div');
+                document.body.appendChild(tempDiv);
+                
+                // Préparer le contenu HTML avec le même style que pour l'impression
+                tempDiv.innerHTML = `
+                <div id="pdf-content" style="padding: 20px;">
+                    <h1 style="text-align: center;">Résultats du découpage VLSM</h1>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                        <thead>
+                            <tr>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Nom du réseau</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Adresse réseau</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Masque</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">CIDR</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Première adresse</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Dernière adresse</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Broadcast</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Nb machines</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+        
+                // Ajouter les données
+                resultsArray.forEach((result, index) => {
+                    if (!result.pasDeReseau) {
+                        const bgColor = index % 2 === 1 ? '#f9f9f9' : '#ffffff';
+                        tempDiv.querySelector('tbody').innerHTML += `
+                        <tr style="background-color: ${bgColor};">
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${result.nom}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${result.adresseReseau.join('.')}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${result.masque.join('.')}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">/${result.cidr}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${result.premièreAdresse.join('.')}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${result.dernièreAdresse.join('.')}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${result.broadcast.join('.')}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${result.nombreMachines}</td>
+                        </tr>`;
+                    }
+                });
+        
+                tempDiv.querySelector('#pdf-content').innerHTML += `
+                        </tbody>
+                    </table>
+                </div>`;
+                
+                // Convertir le contenu en PDF avec html2canvas et jsPDF
+                const element = tempDiv.querySelector('#pdf-content');
+                
+                html2canvas(element).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jspdf.jsPDF('l', 'mm', 'a4'); // Paysage pour une meilleure lisibilité du tableau
+                    
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    const imgWidth = canvas.width;
+                    const imgHeight = canvas.height;
+                    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+                    const imgX = (pdfWidth - imgWidth * ratio) / 2;
+                    const imgY = 20;
+                    
+                    pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+                    pdf.save('resultats_vlsm.pdf');
+                    
+                    // Supprimer l'élément temporaire
+                    document.body.removeChild(tempDiv);
+                });
+            }
+        }
+
+        // Fonction pour afficher les résultats en mode tableau
+        function showTableView() {
+            // Vider le contenu actuel
+            boxzone.innerHTML = '';
+
+            // Vérifier si nous avons des résultats à afficher
+            if (resultsArray.length === 0) {
+                alert("Aucun résultat à afficher. Veuillez d'abord calculer le découpage VLSM.");
+                return;
+            }
+
+            // Ajouter l'adresse et le cidr d'origine au début
+            let adressOriginElement = document.createElement('p');
+            adressOriginElement.textContent = 'Adresse d\'origine : ' + adress.value;
+
+            let cidrOriginElement = document.createElement('p');
+            cidrOriginElement.textContent = 'CIDR d\'origine : ' + inputcidr.value;
+
+            boxzone.appendChild(adressOriginElement);
+            boxzone.appendChild(cidrOriginElement);
+
+            // Créer un tableau pour afficher les résultats
+            const table = document.createElement('table');
+            table.setAttribute('id', 'resultTable');
+            table.classList.add('vlsm-table');
+
+            // Créer l'en-tête du tableau
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            const headers = ['Nom', 'Adresse réseau', 'Masque', 'CIDR', 'Première adresse', 'Dernière adresse', 'Broadcast', 'Nb machines'];
+
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // Créer le corps du tableau
+            const tbody = document.createElement('tbody');
+
+            resultsArray.forEach(result => {
+                if (!result.pasDeReseau) {
+                    const row = document.createElement('tr');
+
+                    // Ajouter les cellules
+                    const cells = [
+                        result.nom,
+                        result.adresseReseau.join('.'),
+                        result.masque.join('.'),
+                        '/' + result.cidr,
+                        result.premièreAdresse.join('.'),
+                        result.dernièreAdresse.join('.'),
+                        result.broadcast.join('.'),
+                        result.nombreMachines
+                    ];
+
+                    cells.forEach(cellText => {
+                        const td = document.createElement('td');
+                        td.textContent = cellText;
+                        row.appendChild(td);
+                    });
+
+                    tbody.appendChild(row);
+                }
+            });
+
+            table.appendChild(tbody);
+            boxzone.appendChild(table);
+
+            // Ne pas ajouter le bouton retour puisque c'est la vue par défaut maintenant
+        }
+
+        // Fonction pour revenir à la vue normale
+        function showNormalView() {
+            // Vider le contenu actuel
+            boxzone.innerHTML = '';
+
+            // Ajouter l'adresse et le cidr d'origine au début
+            let adressOriginElement = document.createElement('p');
+            adressOriginElement.textContent = 'Adresse d\'origine : ' + adress.value;
+
+            let cidrOriginElement = document.createElement('p');
+            cidrOriginElement.textContent = 'CIDR d\'origine : ' + inputcidr.value;
+
+            boxzone.appendChild(adressOriginElement);
+            boxzone.appendChild(cidrOriginElement);
+
+            // Recréer les boîtes de résultat
+            resultsArray.forEach(result => {
+                resultbox(
+                    result.adresseReseau,
+                    result.masque,
+                    result.premièreAdresse,
+                    result.dernièreAdresse,
+                    result.broadcast,
+                    result.cidr,
+                    result.nom
+                );
+            });
+
+            // Recréer les boutons d'action
+            createActionButtons();
+        }
+
+
+        // Fonction pour imprimer les résultats
+        function printResults() {
+            // Créer une nouvelle fenêtre pour l'impression
+            const printWindow = window.open('', '_blank');
+
+            // Préparer le contenu HTML à imprimer
+            let printContent = `
+    <html>
+    <head>
+        <style>
+            body { font-family: Arial, sans-serif; }
+            h1 { text-align: center; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+        </style>
+    </head>
+    <body>
+        <h1>Résultats du découpage VLSM</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom du réseau</th>
+                    <th>Adresse réseau</th>
+                    <th>Masque</th>
+                    <th>CIDR</th>
+                    <th>Première adresse</th>
+                    <th>Dernière adresse</th>
+                    <th>Broadcast</th>
+                    <th>Nb machines</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+            // Ajouter les données
+            resultsArray.forEach(result => {
+                if (!result.pasDeReseau) {
+                    printContent += `<tr>
+                <td>${result.nom}</td>
+                <td>${result.adresseReseau.join('.')}</td>
+                <td>${result.masque.join('.')}</td>
+                <td>/${result.cidr}</td>
+                <td>${result.premièreAdresse.join('.')}</td>
+                <td>${result.dernièreAdresse.join('.')}</td>
+                <td>${result.broadcast.join('.')}</td>
+                <td>${result.nombreMachines}</td>
+            </tr>`;
+                }
+            });
+
+            printContent += `
+            </tbody>
+        </table>
+    </body>
+    </html>`;
+
+            // Écrire le contenu dans la nouvelle fenêtre
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+
+            // Attendre que le contenu soit chargé avant d'imprimer
+            printWindow.onload = function () {
+                printWindow.print();
+            };
+        }
+
+        // Fonction pour créer les boutons d'action
+        function createActionButtons() {
+            // Supprimer les boutons existants si présents
+            const existingButtons = document.getElementById('actionButtons');
+            if (existingButtons) {
+                existingButtons.remove();
+            }
+
+            // Créer un conteneur pour les boutons
+            const buttonContainer = document.createElement('div');
+            buttonContainer.setAttribute('id', 'actionButtons');
+            buttonContainer.style.display = 'flex';
+            buttonContainer.style.justifyContent = 'center';
+            buttonContainer.style.gap = '10px';
+            buttonContainer.style.marginTop = '20px';
+            buttonContainer.style.flexWrap = 'wrap'; // Pour permettre le retour à la ligne si l'écran est petit
+
+            // Bouton pour télécharger en Excel (CSV)
+            const downloadButton = document.createElement('button');
+            downloadButton.textContent = 'Télécharger Excel';
+            downloadButton.classList.add('mainbutton');
+            downloadButton.addEventListener('click', downloadPDF);
+
+            // Bouton pour imprimer
+            const printButton = document.createElement('button');
+            printButton.textContent = 'Imprimer';
+            printButton.classList.add('mainbutton');
+            printButton.addEventListener('click', printResults);
+
+            // Bouton DHCP (nouveau)
+            const dhcpButton = document.createElement('button');
+            dhcpButton.textContent = 'DHCP';
+            dhcpButton.classList.add('mainbutton');
+            dhcpButton.addEventListener('click', () => {
+                // Sauvegarder le script dans un fichier
+                saveScriptToFile(dhcpScript, "config-dhcp.ps1");
+            });
+
+            // Bouton ROUTEUR (nouveau)
+            const routeurButton = document.createElement('button');
+            routeurButton.textContent = 'ROUTEUR';
+            routeurButton.classList.add('mainbutton');
+            routeurButton.addEventListener('click', () => {
+                alert('Fonctionnalité ROUTEUR en cours de développement');
+                // Ici vous pourrez ajouter la fonctionnalité ROUTEUR plus tard
+            });
+
+            // Ajouter les boutons au conteneur
+            buttonContainer.appendChild(downloadButton);
+            buttonContainer.appendChild(printButton);
+            buttonContainer.appendChild(dhcpButton);
+            buttonContainer.appendChild(routeurButton);
+
+            // Ajouter le conteneur à la fin du body
+            body.appendChild(buttonContainer);
+        }
+        const additionalStyle = document.createElement('style');
+        additionalStyle.textContent = `
+#actionButtons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-bottom: 20px;
+}
+
+.mainbutton {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.mainbutton:hover {
+    background-color: #45a049;
+}
+`;
+        document.head.appendChild(additionalStyle);
+        // Modifier la fonction envoyer.addEventListener pour ajouter les boutons à la fin
+        // Trouve cette partie dans le code original:
+        envoyer.addEventListener('click', () => {
+            // Code existant...
+
+            // À la fin de cette fonction, juste avant la dernière accolade, ajouter:
+            // Créer les boutons d'action après avoir affiché tous les résultats
+            createActionButtons();
+        });
+
+        // Ajouter du CSS pour le tableau de résultats
+        const style = document.createElement('style');
+        style.textContent = `
+.vlsm-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.vlsm-table th, .vlsm-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.vlsm-table th {
+    background-color: #f2f2f2;
+    position: sticky;
+    top: 0;
+}
+
+.vlsm-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.vlsm-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+#actionButtons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.mainbutton {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.mainbutton:hover {
+    background-color: #45a049;
+}
+`;
+        document.head.appendChild(style);
+        createActionButtons();
+    }
+
+
+
 });
 
 // permet d'assigner le bouton valider à la touche entrée

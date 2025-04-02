@@ -1,17 +1,13 @@
-// dhcpGenerator.js
-
 /**
- * Génère un script PowerShell pour configurer un serveur DHCP basé sur des calculs de sous-réseaux
+ * Génère un script PowerShell pour configurer uniquement les étendues DHCP
  * @param {Array} subnetsArray - Tableau d'objets contenant les informations des sous-réseaux
- * @param {Object} configOptions - Options supplémentaires pour la configuration du serveur DHCP
+ * @param {Object} configOptions - Options supplémentaires pour la configuration des étendues DHCP
  * @returns {string} - Le script PowerShell généré
  */
 export function generateDhcpScript(subnetsArray, configOptions = {}) {
     // Valeurs par défaut
     const options = {
-        serverIP: configOptions.serverIP || "192.168.100.10",
         defaultGateway: configOptions.defaultGateway || "192.168.100.1",
-        networkInterfaceAlias: configOptions.networkInterfaceAlias || "Ethernet",
         scopeStartOffset: configOptions.scopeStartOffset || 10, // Décalage pour le début de plage
         scopeEndOffset: configOptions.scopeEndOffset || 5,      // Décalage pour la fin de plage
         includeDnsServer: configOptions.includeDnsServer || false,
@@ -25,7 +21,7 @@ export function generateDhcpScript(subnetsArray, configOptions = {}) {
         return "# Aucun sous-réseau valide trouvé pour générer un script DHCP";
     }
 
-    let powershellScript = `# Script PowerShell pour configurer le serveur DHCP basé sur les calculs de sous-réseaux
+    let powershellScript = `# Script PowerShell pour configurer uniquement les étendues DHCP
 # Généré automatiquement le ${new Date().toLocaleString()}
 # Assurez-vous d'exécuter ce script en tant qu'administrateur sur le serveur cible
 
@@ -43,72 +39,26 @@ if (-not (Test-Administrator)) {
 }
 
 # Paramètres de configuration
-Write-Host "Configuration du serveur DHCP - Paramètres prédéfinis" -ForegroundColor Cyan
+Write-Host "Configuration des étendues DHCP - Paramètres prédéfinis" -ForegroundColor Cyan
 Write-Host "------------------------------------------------------" -ForegroundColor Cyan
 
-$DHCPServerIP = "${options.serverIP}"
 $DefaultGateway = "${options.defaultGateway}"
-$NetworkInterfaceAlias = "${options.networkInterfaceAlias}"
 ${options.includeDnsServer ? `$DNSServer = "${options.dnsServerIP}"` : ''}
 
-# Installation du rôle DHCP
-Write-Host "\\nInstallation du rôle DHCP et des outils d'administration..." -ForegroundColor Cyan
+# Vérification que le service DHCP est disponible
 try {
-    Install-WindowsFeature DHCP -IncludeManagementTools -ErrorAction Stop
-    Write-Host "Rôle DHCP installé avec succès." -ForegroundColor Green
+    $dhcpService = Get-Service DHCPServer -ErrorAction Stop
+    if ($dhcpService.Status -ne "Running") {
+        Write-Host "Le service DHCP n'est pas en cours d'exécution. Tentative de démarrage..." -ForegroundColor Yellow
+        Start-Service DHCPServer -ErrorAction Stop
+        Write-Host "Service DHCP démarré." -ForegroundColor Green
+    } else {
+        Write-Host "Service DHCP déjà en cours d'exécution." -ForegroundColor Green
+    }
 } catch {
-    Write-Host "Erreur lors de l'installation du rôle DHCP: $_" -ForegroundColor Red
+    Write-Host "Erreur: Le service DHCP n'est pas installé ou ne peut pas être démarré." -ForegroundColor Red
+    Write-Host "Veuillez installer le rôle DHCP avant d'exécuter ce script." -ForegroundColor Red
     exit
-}
-
-# Configuration de l'adresse IP statique
-Write-Host "\\nConfiguration de l'adresse IP statique ($DHCPServerIP)..." -ForegroundColor Cyan
-try {
-    # Supprimer les configurations IP existantes
-    Remove-NetIPAddress -InterfaceAlias $NetworkInterfaceAlias -Confirm:$false -ErrorAction SilentlyContinue
-    
-    # Configurer la nouvelle adresse IP
-    New-NetIPAddress -IPAddress $DHCPServerIP -PrefixLength 24 -InterfaceAlias $NetworkInterfaceAlias -DefaultGateway $DefaultGateway -ErrorAction Stop
-    
-    Write-Host "Configuration IP réussie." -ForegroundColor Green
-} catch {
-    Write-Host "Erreur lors de la configuration de l'adresse IP: $_" -ForegroundColor Red
-    Write-Host "Poursuite du script..." -ForegroundColor Yellow
-}
-
-# Compléter l'installation du service DHCP
-Write-Host "\\nFinalisation de l'installation du service DHCP..." -ForegroundColor Cyan
-try {
-    # Création du répertoire pour les sauvegardes DHCP
-    $DHCPBackupPath = "$env:SystemRoot\\System32\\dhcp\\backup"
-    if (-not (Test-Path $DHCPBackupPath)) {
-        New-Item -Path $DHCPBackupPath -ItemType Directory -Force
-    }
-    
-    # Configuration du service DHCP
-    Set-ItemProperty -Path HKLM:\\SOFTWARE\\Microsoft\\ServerManager\\Roles\\12 -Name ConfigurationState -Value 2
-    
-    # Redémarrage du service DHCP
-    Restart-Service DHCPServer -ErrorAction Stop
-    
-    Write-Host "Service DHCP configuré." -ForegroundColor Green
-} catch {
-    Write-Host "Erreur lors de la configuration du service DHCP: $_" -ForegroundColor Red
-}
-
-# Autorisation du serveur DHCP dans Active Directory (si AD est présent)
-Write-Host "\\nVérification si Active Directory est présent..." -ForegroundColor Cyan
-$isDomainController = (Get-WmiObject -Class Win32_ComputerSystem).DomainRole -ge 4
-if ($isDomainController) {
-    try {
-        Write-Host "Autorisation du serveur DHCP dans Active Directory..." -ForegroundColor Cyan
-        Add-DhcpServerInDC -ErrorAction Stop
-        Write-Host "Serveur DHCP autorisé dans Active Directory." -ForegroundColor Green
-    } catch {
-        Write-Host "Erreur lors de l'autorisation du serveur DHCP dans AD: $_" -ForegroundColor Red
-    }
-} else {
-    Write-Host "Active Directory non détecté. Pas besoin d'autoriser le serveur DHCP." -ForegroundColor Yellow
 }
 
 # Configuration des étendues DHCP
@@ -161,15 +111,9 @@ try {
     });
 
     // Ajouter la fin du script
-    powershellScript += `# Redémarrage du service DHCP
-Write-Host "\\nRedémarrage du service DHCP..." -ForegroundColor Cyan
-Restart-Service DHCPServer
-Write-Host "Service DHCP redémarré." -ForegroundColor Green
-
-# Affichage des informations de configuration
-Write-Host "\\nRécapitulatif de la configuration du serveur DHCP:" -ForegroundColor Cyan
+    powershellScript += `# Affichage des informations de configuration
+Write-Host "\\nRécapitulatif des étendues DHCP:" -ForegroundColor Cyan
 Write-Host "-------------------------------------------" -ForegroundColor Cyan
-Write-Host "Adresse IP du serveur : $DHCPServerIP" -ForegroundColor White
 Write-Host "Passerelle par défaut : $DefaultGateway" -ForegroundColor White
 ${options.includeDnsServer ? 'Write-Host "Serveur DNS : $DNSServer" -ForegroundColor White' : ''}
 Write-Host "Nombre d'étendues configurées : ${validSubnets.length}" -ForegroundColor White
@@ -178,8 +122,7 @@ Write-Host "Nombre d'étendues configurées : ${validSubnets.length}" -Foregroun
 Get-DhcpServerv4Scope | Format-Table -Property ScopeId, Name, SubnetMask, StartRange, EndRange, State -AutoSize
 
 Write-Host "-------------------------------------------" -ForegroundColor Cyan
-Write-Host "\\nLa configuration du serveur DHCP est terminée." -ForegroundColor Green
-Write-Host "Pour vérifier la configuration, ouvrez le gestionnaire DHCP (dhcpmgmt.msc)" -ForegroundColor Yellow`;
+Write-Host "\\nLa configuration des étendues DHCP est terminée." -ForegroundColor Green`;
 
     return powershellScript;
 }
@@ -187,9 +130,9 @@ Write-Host "Pour vérifier la configuration, ouvrez le gestionnaire DHCP (dhcpmg
 /**
  * Sauvegarde le script PowerShell généré dans un fichier
  * @param {string} script - Le script PowerShell généré
- * @param {string} filename - Nom du fichier de sortie (par défaut: dhcp-config.ps1)
+ * @param {string} filename - Nom du fichier de sortie (par défaut: dhcp-scopes.ps1)
  */
-export function saveScriptToFile(script, filename = "dhcp-config.ps1") {
+export function saveScriptToFile(script, filename = "dhcp-scopes.ps1") {
     try {
         // Dans un environnement de navigateur, créer un blob et proposer le téléchargement
         const blob = new Blob([script], { type: 'text/plain' });
@@ -217,7 +160,7 @@ export function saveScriptToFile(script, filename = "dhcp-config.ps1") {
  * @param {string} filename - Nom du fichier de sortie (si saveToFile est true)
  * @returns {string} - Le script PowerShell généré
  */
-export function generateDhcpScriptFromCalculator(resultsArray, options = {}, saveToFile = false, filename = "dhcp-config.ps1") {
+export function generateDhcpScriptFromCalculator(resultsArray, options = {}, saveToFile = false, filename = "dhcp-scopes.ps1") {
     // Vérifier si resultsArray est valide
     if (!Array.isArray(resultsArray) || resultsArray.length === 0) {
         console.error("Erreur: résultats de sous-réseaux invalides ou vides");
