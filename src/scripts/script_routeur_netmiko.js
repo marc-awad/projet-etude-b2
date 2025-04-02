@@ -1,4 +1,7 @@
-export function generateCiscoConfigScript(resultsArray, filename = "cisco_config.py") {
+export function generateCiscoConfigScript(
+  resultsArray,
+  filename = "cisco_config.py"
+) {
   // Créer l'en-tête du script Python
   let pythonCode = `import getpass
 from netmiko import ConnectHandler
@@ -115,25 +118,6 @@ try:
 except Exception as e:
     print("Erreur:", e)
 `
-
-  // Créer un Blob avec le code Python
-  const blob = new Blob([pythonCode], { type: "text/plain" })
-
-  // Créer une URL pour le Blob
-  const url = URL.createObjectURL(blob)
-
-  // Créer un élément a pour le téléchargement
-  const downloadLink = document.createElement("a")
-  downloadLink.href = url
-  downloadLink.download = filename
-
-  // Ajouter l'élément au document, cliquer dessus, puis le supprimer
-  document.body.appendChild(downloadLink)
-  downloadLink.click()
-  document.body.removeChild(downloadLink)
-
-  // Libérer l'URL pour éviter les fuites de mémoire
-  setTimeout(() => URL.revokeObjectURL(url), 100)
 
   return pythonCode
 }

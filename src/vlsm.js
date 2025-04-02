@@ -5,7 +5,7 @@ import {
 } from "./scripts/script_dhcp.js"
 
 import { generateCiscoSerialConfigScript } from "./scripts/script_routeur_pyserial.js"
-import {generateCiscoConfigScript} from "./scripts/script_routeur_netmiko.js"
+import { generateCiscoConfigScript } from "./scripts/script_routeur_netmiko.js"
 // les boutons
 let valider = document.getElementById("valider1")
 let envoyer = document.getElementById("envoyer")
@@ -607,63 +607,64 @@ envoyer.addEventListener("click", () => {
 
     // Générer le script DHCP à partir des résultats
     const dhcpScript = generateDhcpScript(resultsArray, dhcpOptions)
-    // const pythonScript = generateCiscoSerialConfigScript(resultsArray)
-    const pythonScript = generateCiscoConfigScript(resultsArray)
-
+    const pythonScriptConsole = generateCiscoSerialConfigScript(resultsArray)
+    const pythonScriptSSH = generateCiscoConfigScript(resultsArray)
 
     // Fonctions pour les nouveaux boutons (à ajouter juste avant le dernier crochet fermant)
 
     // Fonction pour télécharger les résultats au format Excel
     function downloadPDF() {
-        let scriptsLoaded = {
-          jspdf: false,
-          html2canvas: false,
-        };
-      
-        function checkScriptsLoaded() {
-          if (scriptsLoaded.jspdf && scriptsLoaded.html2canvas) {
-            setTimeout(generatePDF, 1000);
-          }
+      let scriptsLoaded = {
+        jspdf: false,
+        html2canvas: false,
+      }
+
+      function checkScriptsLoaded() {
+        if (scriptsLoaded.jspdf && scriptsLoaded.html2canvas) {
+          setTimeout(generatePDF, 1000)
         }
-      
-        if (typeof jspdf !== "undefined" && typeof html2canvas !== "undefined") {
-          generatePDF();
+      }
+
+      if (typeof jspdf !== "undefined" && typeof html2canvas !== "undefined") {
+        generatePDF()
+      } else {
+        if (typeof jspdf === "undefined") {
+          const script = document.createElement("script")
+          script.src =
+            "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+          script.onload = function () {
+            scriptsLoaded.jspdf = true
+            checkScriptsLoaded()
+          }
+          document.head.appendChild(script)
         } else {
-          if (typeof jspdf === "undefined") {
-            const script = document.createElement("script");
-            script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-            script.onload = function () {
-              scriptsLoaded.jspdf = true;
-              checkScriptsLoaded();
-            };
-            document.head.appendChild(script);
-          } else {
-            scriptsLoaded.jspdf = true;
-          }
-      
-          if (typeof html2canvas === "undefined") {
-            const html2canvasScript = document.createElement("script");
-            html2canvasScript.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-            html2canvasScript.onload = function () {
-              scriptsLoaded.html2canvas = true;
-              checkScriptsLoaded();
-            };
-            document.head.appendChild(html2canvasScript);
-          } else {
-            scriptsLoaded.html2canvas = true;
-          }
-      
-          checkScriptsLoaded();
+          scriptsLoaded.jspdf = true
         }
-      
-        function generatePDF() {
-          const tempDiv = document.createElement("div");
-          tempDiv.id = "temp-pdf-container";
-          tempDiv.style.position = "absolute";
-          tempDiv.style.left = "-9999px";
-          document.body.appendChild(tempDiv);
-      
-          tempDiv.innerHTML = `
+
+        if (typeof html2canvas === "undefined") {
+          const html2canvasScript = document.createElement("script")
+          html2canvasScript.src =
+            "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+          html2canvasScript.onload = function () {
+            scriptsLoaded.html2canvas = true
+            checkScriptsLoaded()
+          }
+          document.head.appendChild(html2canvasScript)
+        } else {
+          scriptsLoaded.html2canvas = true
+        }
+
+        checkScriptsLoaded()
+      }
+
+      function generatePDF() {
+        const tempDiv = document.createElement("div")
+        tempDiv.id = "temp-pdf-container"
+        tempDiv.style.position = "absolute"
+        tempDiv.style.left = "-9999px"
+        document.body.appendChild(tempDiv)
+
+        tempDiv.innerHTML = `
           <div id="pdf-content" style="padding: 20px; background-color: white; color: black; font-family: Arial, sans-serif;">
               <h1 style="text-align: center; color: black; text-shadow: none;">Résultats du découpage VLSM</h1>
               <table style="width: 100%; border-collapse: collapse;">
@@ -682,69 +683,76 @@ envoyer.addEventListener("click", () => {
                   <tbody id="pdf-table-body">
                   </tbody>
               </table>
-          </div>`;
-      
-          const tbody = tempDiv.querySelector("#pdf-table-body");
-      
-          resultsArray.forEach((result, index) => {
-            if (!result.pasDeReseau) {
-              const row = document.createElement("tr");
-              row.style.backgroundColor = index % 2 === 1 ? "#f9f9f9" : "#ffffff";
-              row.style.color = "black";
-      
-              const cells = [
-                result.nom,
-                result.adresseReseau.join("."),
-                result.masque.join("."),
-                "/" + result.cidr,
-                result.premièreAdresse.join("."),
-                result.dernièreAdresse.join("."),
-                result.broadcast.join("."),
-                result.nombreMachines,
-              ];
-      
-              cells.forEach((cellText) => {
-                const td = document.createElement("td");
-                td.textContent = cellText;
-                td.style.border = "1px solid black";
-                td.style.padding = "8px";
-                td.style.textAlign = "left";
-                td.style.color = "black";
-                row.appendChild(td);
-              });
-      
-              tbody.appendChild(row);
-            }
-          });
-      
-          setTimeout(() => {
-            const element = document.getElementById("pdf-content");
-            if (!element) return;
-      
-            html2canvas(element, { scale: 2, backgroundColor: "#ffffff" })
-              .then((canvas) => {
-                const imgData = canvas.toDataURL("image/png");
-                const pdf = new jspdf.jsPDF("l", "mm", "a4");
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
-                const imgWidth = canvas.width;
-                const imgHeight = canvas.height;
-                const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-                const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      
-                pdf.addImage(imgData, "PNG", imgX, 10, imgWidth * ratio, imgHeight * ratio);
-                pdf.save("resultats_vlsm.pdf");
-                document.body.removeChild(tempDiv);
-              })
-              .catch((error) => {
-                console.error("Erreur lors de la génération du PDF:", error);
-                alert("Erreur lors de la génération du PDF. Veuillez réessayer.");
-                document.body.removeChild(tempDiv);
-              });
-          }, 500);
-        }
+          </div>`
+
+        const tbody = tempDiv.querySelector("#pdf-table-body")
+
+        resultsArray.forEach((result, index) => {
+          if (!result.pasDeReseau) {
+            const row = document.createElement("tr")
+            row.style.backgroundColor = index % 2 === 1 ? "#f9f9f9" : "#ffffff"
+            row.style.color = "black"
+
+            const cells = [
+              result.nom,
+              result.adresseReseau.join("."),
+              result.masque.join("."),
+              "/" + result.cidr,
+              result.premièreAdresse.join("."),
+              result.dernièreAdresse.join("."),
+              result.broadcast.join("."),
+              result.nombreMachines,
+            ]
+
+            cells.forEach((cellText) => {
+              const td = document.createElement("td")
+              td.textContent = cellText
+              td.style.border = "1px solid black"
+              td.style.padding = "8px"
+              td.style.textAlign = "left"
+              td.style.color = "black"
+              row.appendChild(td)
+            })
+
+            tbody.appendChild(row)
+          }
+        })
+
+        setTimeout(() => {
+          const element = document.getElementById("pdf-content")
+          if (!element) return
+
+          html2canvas(element, { scale: 2, backgroundColor: "#ffffff" })
+            .then((canvas) => {
+              const imgData = canvas.toDataURL("image/png")
+              const pdf = new jspdf.jsPDF("l", "mm", "a4")
+              const pdfWidth = pdf.internal.pageSize.getWidth()
+              const pdfHeight = pdf.internal.pageSize.getHeight()
+              const imgWidth = canvas.width
+              const imgHeight = canvas.height
+              const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
+              const imgX = (pdfWidth - imgWidth * ratio) / 2
+
+              pdf.addImage(
+                imgData,
+                "PNG",
+                imgX,
+                10,
+                imgWidth * ratio,
+                imgHeight * ratio
+              )
+              pdf.save("resultats_vlsm.pdf")
+              document.body.removeChild(tempDiv)
+            })
+            .catch((error) => {
+              console.error("Erreur lors de la génération du PDF:", error)
+              alert("Erreur lors de la génération du PDF. Veuillez réessayer.")
+              document.body.removeChild(tempDiv)
+            })
+        }, 500)
       }
-      
+    }
+
     // Fonction pour afficher les résultats en mode tableau
     function showTableView() {
       // Vider le contenu actuel
@@ -902,10 +910,10 @@ envoyer.addEventListener("click", () => {
 
       // Bouton ROUTEUR (nouveau)
       const routeurButton = document.createElement("button")
-      routeurButton.textContent = "ROUTEUR"
+      routeurButton.textContent = "ROUTEUR SSH"
       routeurButton.classList.add("mainbutton")
       routeurButton.addEventListener("click", () => {
-        saveScriptToFile(pythonScript, "config-routeur.py")
+        saveScriptToFile(pythonScriptSSH, "config-routeur.py")
       })
 
       // Ajouter les boutons au conteneur
@@ -931,12 +939,6 @@ envoyer.addEventListener("click", () => {
 
     // Ajouter du CSS pour le tableau de résultats
     const style = document.createElement("style")
-
-
-
-
-
-
 
     document.head.appendChild(style)
     createActionButtons()
