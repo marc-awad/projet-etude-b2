@@ -677,7 +677,7 @@ envoyer.addEventListener("click", () => {
                           <th style="border: 1px solid black; padding: 8px; text-align: left; color: black;">Première adresse</th>
                           <th style="border: 1px solid black; padding: 8px; text-align: left; color: black;">Dernière adresse</th>
                           <th style="border: 1px solid black; padding: 8px; text-align: left; color: black;">Broadcast</th>
-                          <th style="border: 1px solid black; padding: 8px; text-align: left; color: black;">Nb machines</th>
+                          <th style="border: 1px solid black; padding: 8px; text-align: left; color: black;">Nb Hotes</th>
                       </tr>
                   </thead>
                   <tbody id="pdf-table-body">
@@ -701,7 +701,7 @@ envoyer.addEventListener("click", () => {
               result.premièreAdresse.join("."),
               result.dernièreAdresse.join("."),
               result.broadcast.join("."),
-              result.nombreMachines,
+              result.nombreMachines - 2,
             ]
 
             cells.forEach((cellText) => {
@@ -792,7 +792,7 @@ envoyer.addEventListener("click", () => {
         "Première adresse",
         "Dernière adresse",
         "Broadcast",
-        "Nb machines",
+        "Nb hotes",
       ]
 
       headers.forEach((headerText) => {
@@ -820,7 +820,7 @@ envoyer.addEventListener("click", () => {
             result.premièreAdresse.join("."),
             result.dernièreAdresse.join("."),
             result.broadcast.join("."),
-            result.nombreMachines,
+            result.nombreMachines - 2 ,
           ]
 
           cells.forEach((cellText) => {
