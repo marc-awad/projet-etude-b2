@@ -614,210 +614,137 @@ envoyer.addEventListener("click", () => {
     // Fonctions pour les nouveaux boutons (à ajouter juste avant le dernier crochet fermant)
 
     // Fonction pour télécharger les résultats au format Excel
-
     function downloadPDF() {
-      // Variable pour suivre le statut de chargement des scripts
-      let scriptsLoaded = {
-        jspdf: false,
-        html2canvas: false,
-      }
-
-      // Fonction qui vérifie si les deux scripts sont chargés
-      function checkScriptsLoaded() {
-        if (scriptsLoaded.jspdf && scriptsLoaded.html2canvas) {
-          setTimeout(generatePDF, 1000)
-        }
-      }
-
-      // Vérifier si les scripts sont déjà disponibles
-      if (typeof jspdf !== "undefined" && typeof html2canvas !== "undefined") {
-        generatePDF()
-      } else {
-        // Charger les scripts nécessaires s'ils ne sont pas disponibles
-        if (typeof jspdf === "undefined") {
-          const script = document.createElement("script")
-          script.src =
-            "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-          script.onload = function () {
-            scriptsLoaded.jspdf = true
-            checkScriptsLoaded()
+        let scriptsLoaded = {
+          jspdf: false,
+          html2canvas: false,
+        };
+      
+        function checkScriptsLoaded() {
+          if (scriptsLoaded.jspdf && scriptsLoaded.html2canvas) {
+            setTimeout(generatePDF, 1000);
           }
-          document.head.appendChild(script)
+        }
+      
+        if (typeof jspdf !== "undefined" && typeof html2canvas !== "undefined") {
+          generatePDF();
         } else {
-          scriptsLoaded.jspdf = true
+          if (typeof jspdf === "undefined") {
+            const script = document.createElement("script");
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+            script.onload = function () {
+              scriptsLoaded.jspdf = true;
+              checkScriptsLoaded();
+            };
+            document.head.appendChild(script);
+          } else {
+            scriptsLoaded.jspdf = true;
+          }
+      
+          if (typeof html2canvas === "undefined") {
+            const html2canvasScript = document.createElement("script");
+            html2canvasScript.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+            html2canvasScript.onload = function () {
+              scriptsLoaded.html2canvas = true;
+              checkScriptsLoaded();
+            };
+            document.head.appendChild(html2canvasScript);
+          } else {
+            scriptsLoaded.html2canvas = true;
+          }
+      
+          checkScriptsLoaded();
         }
-
-        if (typeof html2canvas === "undefined") {
-          const html2canvasScript = document.createElement("script")
-          html2canvasScript.src =
-            "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
-          html2canvasScript.onload = function () {
-            scriptsLoaded.html2canvas = true
-            checkScriptsLoaded()
-          }
-          document.head.appendChild(html2canvasScript)
-        } else {
-          scriptsLoaded.html2canvas = true
+      
+        function generatePDF() {
+          const tempDiv = document.createElement("div");
+          tempDiv.id = "temp-pdf-container";
+          tempDiv.style.position = "absolute";
+          tempDiv.style.left = "-9999px";
+          document.body.appendChild(tempDiv);
+      
+          tempDiv.innerHTML = `
+          <div id="pdf-content" style="padding: 20px; background-color: white; color: black; font-family: Arial, sans-serif;">
+              <h1 style="text-align: center; color: black; text-shadow: none;">Résultats du découpage VLSM</h1>
+              <table style="width: 100%; border-collapse: collapse;">
+                  <thead>
+                      <tr style="background-color: #dddddd;">
+                          <th style="border: 1px solid black; padding: 8px; text-align: left; color: black;">Nom du réseau</th>
+                          <th style="border: 1px solid black; padding: 8px; text-align: left; color: black;">Adresse réseau</th>
+                          <th style="border: 1px solid black; padding: 8px; text-align: left; color: black;">Masque</th>
+                          <th style="border: 1px solid black; padding: 8px; text-align: left; color: black;">CIDR</th>
+                          <th style="border: 1px solid black; padding: 8px; text-align: left; color: black;">Première adresse</th>
+                          <th style="border: 1px solid black; padding: 8px; text-align: left; color: black;">Dernière adresse</th>
+                          <th style="border: 1px solid black; padding: 8px; text-align: left; color: black;">Broadcast</th>
+                          <th style="border: 1px solid black; padding: 8px; text-align: left; color: black;">Nb machines</th>
+                      </tr>
+                  </thead>
+                  <tbody id="pdf-table-body">
+                  </tbody>
+              </table>
+          </div>`;
+      
+          const tbody = tempDiv.querySelector("#pdf-table-body");
+      
+          resultsArray.forEach((result, index) => {
+            if (!result.pasDeReseau) {
+              const row = document.createElement("tr");
+              row.style.backgroundColor = index % 2 === 1 ? "#f9f9f9" : "#ffffff";
+              row.style.color = "black";
+      
+              const cells = [
+                result.nom,
+                result.adresseReseau.join("."),
+                result.masque.join("."),
+                "/" + result.cidr,
+                result.premièreAdresse.join("."),
+                result.dernièreAdresse.join("."),
+                result.broadcast.join("."),
+                result.nombreMachines,
+              ];
+      
+              cells.forEach((cellText) => {
+                const td = document.createElement("td");
+                td.textContent = cellText;
+                td.style.border = "1px solid black";
+                td.style.padding = "8px";
+                td.style.textAlign = "left";
+                td.style.color = "black";
+                row.appendChild(td);
+              });
+      
+              tbody.appendChild(row);
+            }
+          });
+      
+          setTimeout(() => {
+            const element = document.getElementById("pdf-content");
+            if (!element) return;
+      
+            html2canvas(element, { scale: 2, backgroundColor: "#ffffff" })
+              .then((canvas) => {
+                const imgData = canvas.toDataURL("image/png");
+                const pdf = new jspdf.jsPDF("l", "mm", "a4");
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+                const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+                const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      
+                pdf.addImage(imgData, "PNG", imgX, 10, imgWidth * ratio, imgHeight * ratio);
+                pdf.save("resultats_vlsm.pdf");
+                document.body.removeChild(tempDiv);
+              })
+              .catch((error) => {
+                console.error("Erreur lors de la génération du PDF:", error);
+                alert("Erreur lors de la génération du PDF. Veuillez réessayer.");
+                document.body.removeChild(tempDiv);
+              });
+          }, 500);
         }
-
-        // Au cas où les deux scripts sont déjà chargés
-        checkScriptsLoaded()
       }
-
-      function generatePDF() {
-        // Créer un élément div temporaire pour contenir le contenu
-        const tempDiv = document.createElement("div")
-        tempDiv.id = "temp-pdf-container"
-        tempDiv.style.position = "absolute"
-        tempDiv.style.left = "-9999px" // Hors écran mais toujours rendu
-        document.body.appendChild(tempDiv)
-
-        // Préparer le contenu HTML
-        tempDiv.innerHTML = `
-        <div id="pdf-content" style="padding: 20px; background-color: white;">
-            <h1 style="text-align: center;">Résultats du découpage VLSM</h1>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                <thead>
-                    <tr>
-                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Nom du réseau</th>
-                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Adresse réseau</th>
-                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Masque</th>
-                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">CIDR</th>
-                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Première adresse</th>
-                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Dernière adresse</th>
-                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Broadcast</th>
-                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Nb machines</th>
-                    </tr>
-                </thead>
-                <tbody id="pdf-table-body">
-                </tbody>
-            </table>
-        </div>`
-
-        // Référence au tbody du tableau dans tempDiv
-        const tbody = tempDiv.querySelector("#pdf-table-body")
-
-        // Ajouter chaque ligne de données
-        resultsArray.forEach((result, index) => {
-          if (!result.pasDeReseau) {
-            const row = document.createElement("tr")
-            row.style.backgroundColor = index % 2 === 1 ? "#f9f9f9" : "#ffffff"
-
-            // Données pour chaque cellule
-            const cells = [
-              result.nom,
-              result.adresseReseau.join("."),
-              result.masque.join("."),
-              "/" + result.cidr,
-              result.premièreAdresse.join("."),
-              result.dernièreAdresse.join("."),
-              result.broadcast.join("."),
-              result.nombreMachines,
-            ]
-
-            // Créer et ajouter chaque cellule
-            cells.forEach((cellText) => {
-              const td = document.createElement("td")
-              td.textContent = cellText
-              td.style.border = "1px solid #ddd"
-              td.style.padding = "8px"
-              td.style.textAlign = "left"
-              row.appendChild(td)
-            })
-
-            tbody.appendChild(row)
-          }
-        })
-
-        // Flag pour suivre si le PDF a déjà été généré
-        let pdfGenerated = false
-
-        // Attendre que le DOM soit mis à jour
-        setTimeout(() => {
-          // Éviter la double génération
-          if (pdfGenerated) return
-
-          const element = document.getElementById("pdf-content")
-
-          // S'assurer que l'élément est correctement rendu
-          if (!element) {
-            console.error("Élément PDF non trouvé")
-            return
-          }
-
-          // Options pour html2canvas pour améliorer la qualité
-          const options = {
-            scale: 2, // Augmenter l'échelle pour une meilleure qualité
-            useCORS: true,
-            logging: true,
-            backgroundColor: "#ffffff",
-          }
-
-          html2canvas(element, options)
-            .then((canvas) => {
-              pdfGenerated = true
-              const imgData = canvas.toDataURL("image/png")
-              const pdf = new jspdf.jsPDF("l", "mm", "a4") // Format paysage
-
-              const pdfWidth = pdf.internal.pageSize.getWidth()
-              const pdfHeight = pdf.internal.pageSize.getHeight()
-              const imgWidth = canvas.width
-              const imgHeight = canvas.height
-
-              // Calculer le ratio pour adapter l'image à la page PDF
-              const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
-              const imgX = (pdfWidth - imgWidth * ratio) / 2
-
-              // Si le contenu est trop grand, le diviser en plusieurs pages
-              if (imgHeight * ratio > pdfHeight) {
-                let heightLeft = imgHeight
-                let position = 0
-                let page = 1
-
-                while (heightLeft > 0) {
-                  pdf.addImage(
-                    imgData,
-                    "PNG",
-                    imgX,
-                    10,
-                    imgWidth * ratio,
-                    imgHeight * ratio,
-                    "",
-                    "FAST"
-                  )
-                  heightLeft -= pdfHeight
-                  position -= pdfHeight
-
-                  if (heightLeft > 0) {
-                    pdf.addPage()
-                    page++
-                  }
-                }
-              } else {
-                // Si tout tient sur une page
-                pdf.addImage(
-                  imgData,
-                  "PNG",
-                  imgX,
-                  10,
-                  imgWidth * ratio,
-                  imgHeight * ratio
-                )
-              }
-
-              pdf.save("resultats_vlsm.pdf")
-
-              // Supprimer l'élément temporaire
-              document.body.removeChild(tempDiv)
-            })
-            .catch((error) => {
-              console.error("Erreur lors de la génération du PDF:", error)
-              alert("Erreur lors de la génération du PDF. Veuillez réessayer.")
-              document.body.removeChild(tempDiv)
-            })
-        }, 500) // Attendre 500ms pour s'assurer que le DOM est mis à jour
-      }
-    }
+      
     // Fonction pour afficher les résultats en mode tableau
     function showTableView() {
       // Vider le contenu actuel
@@ -990,31 +917,7 @@ envoyer.addEventListener("click", () => {
       body.appendChild(buttonContainer)
     }
     const additionalStyle = document.createElement("style")
-    additionalStyle.textContent = `
-#actionButtons {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    padding-bottom: 20px;
-}
 
-.mainbutton {
-    padding: 8px 16px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    margin-bottom: 10px;
-}
-
-.mainbutton:hover {
-    background-color: #45a049;
-}
-`
     document.head.appendChild(additionalStyle)
     // Modifier la fonction envoyer.addEventListener pour ajouter les boutons à la fin
     // Trouve cette partie dans le code original:
@@ -1028,55 +931,13 @@ envoyer.addEventListener("click", () => {
 
     // Ajouter du CSS pour le tableau de résultats
     const style = document.createElement("style")
-    style.textContent = `
-.vlsm-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    font-size: 14px;
-}
 
-.vlsm-table th, .vlsm-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-}
 
-.vlsm-table th {
-    background-color: #f2f2f2;
-    position: sticky;
-    top: 0;
-}
 
-.vlsm-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
 
-.vlsm-table tr:hover {
-    background-color: #f1f1f1;
-}
 
-#actionButtons {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-}
 
-.mainbutton {
-    padding: 8px 16px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-}
 
-.mainbutton:hover {
-    background-color: #45a049;
-}
-`
     document.head.appendChild(style)
     createActionButtons()
   }
