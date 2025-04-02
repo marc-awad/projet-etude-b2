@@ -1,13 +1,17 @@
-import { generateDhcpScript, generateDhcpScriptFromCalculator, saveScriptToFile } from './script_dhcp.js';
+import {
+    generateDhcpScript,
+    generateDhcpScriptFromCalculator,
+    saveScriptToFile,
+} from "./script_dhcp.js"
 // les boutons
-let valider = document.getElementById('valider1');
-let envoyer = document.getElementById('envoyer');
+let valider = document.getElementById("valider1")
+let envoyer = document.getElementById("envoyer")
 
 // les inputs
-let adress = document.getElementById('adress');
-let sous_reseaux = document.getElementById('sous_reseaux');
-let inputcidr = document.getElementById('inputcidr');
-let marge = document.getElementById('marge');
+let adress = document.getElementById("adress")
+let sous_reseaux = document.getElementById("sous_reseaux")
+let inputcidr = document.getElementById("inputcidr")
+let marge = document.getElementById("marge")
 
 //les divs
 let boxzone = document.getElementById('boxzone');
@@ -17,37 +21,37 @@ let body = document.getElementById('body');
 
 
 // les champs de textes
-let premierex = document.getElementById('premierex');
-let dernierex = document.getElementById('dernierex');
-let adressbroadcast = document.getElementById('adressbroadcast');
-let prochain_reseau = document.getElementById('prochain_reseau');
-let masque = document.getElementById('masque');
+let premierex = document.getElementById("premierex")
+let dernierex = document.getElementById("dernierex")
+let adressbroadcast = document.getElementById("adressbroadcast")
+let prochain_reseau = document.getElementById("prochain_reseau")
+let masque = document.getElementById("masque")
 
 // element dont l'apparence vont changer
-let inputs = document.getElementById('inputs');
-let boxadresses = document.getElementById('boxadresses');
+let inputs = document.getElementById("inputs")
+let boxadresses = document.getElementById("boxadresses")
 
 // initialisation de variables à 0
 let nextadress = 0
-let machineval = 0;
-let premieradress = 0;
-let dernieradress = 0;
-let broadcast = 0;
-let adressorigin = 0;
-let nbreseaux = 0;
-let taillelistbox = 0;
-let listbox = [];
-let buttonaddexist = false;
-let nbadress = 0;
-let plusdereseau = false;
-let alrdnomore = false;
-let inputvide = false;
-let validerform = true;
+let machineval = 0
+let premieradress = 0
+let dernieradress = 0
+let broadcast = 0
+let adressorigin = 0
+let nbreseaux = 0
+let taillelistbox = 0
+let listbox = []
+let buttonaddexist = false
+let nbadress = 0
+let plusdereseau = false
+let alrdnomore = false
+let inputvide = false
+let validerform = true
 
 // Tableau pour stocker tous les résultats de chaque itération
-let resultsArray = [];
+let resultsArray = []
 
-// fonction qui permet de corriger une adresse 
+// fonction qui permet de corriger une adresse
 //si une valeur dépasse 255 ou devient inferieur à 0
 function correction(adresse) {
     for (let i = 3; i > 0; i--) {
@@ -62,282 +66,284 @@ function correction(adresse) {
     return adresse
 }
 function formatInput(input) {
-
     // Supprimer tous les caractères non numériques et non points
-    let value = input.value.replace(/[^\d.]/g, '');
+    let value = input.value.replace(/[^\d.]/g, "")
 
     // Supprimer les points excédentaires
-    value = value.replace(/\.{2,}/g, '.');
+    value = value.replace(/\.{2,}/g, ".")
 
     // Insérer un point après chaque groupe de trois chiffres
-    value = value.replace(/(\d{3})(?=\d)/g, '$1.');
+    value = value.replace(/(\d{3})(?=\d)/g, "$1.")
 
     // Limiter à quatre groupes de trois chiffres
-    let groups = value.split('.');
-    groups = groups.slice(0, 4);
+    let groups = value.split(".")
+    groups = groups.slice(0, 4)
 
-    if (groups.length === 4 && groups[3].charAt(0) === '0') {
-        groups[3] = '0';
+    if (groups.length === 4 && groups[3].charAt(0) === "0") {
+        groups[3] = "0"
     }
 
     // Ajouter un point après un '0' si c'est le premier caractère du groupe
-    value = groups.join('.').replace(/(?<=^|\.)0(?=\d)/g, '0.');
+    value = groups.join(".").replace(/(?<=^|\.)0(?=\d)/g, "0.")
 
     // Limiter à quinze caractères (quatre groupes de trois chiffres et trois points)
-    value = value.substring(0, 15);
+    value = value.substring(0, 15)
 
     // Si la longueur de la valeur dépasse 12 (quatre groupes de trois chiffres)
     // et si le dernier caractère est un point, supprimez-le
-    if (value.length > 12 && value.charAt(value.length - 1) === '.') {
-        value = value.substring(0, value.length - 1);
+    if (value.length > 12 && value.charAt(value.length - 1) === ".") {
+        value = value.substring(0, value.length - 1)
     }
 
     // Corriger si une valeur dépasse 255 ou devient inférieure à 0
-    let group = value.split('.');
+    let group = value.split(".")
     for (let i = 0; i < group.length; i++) {
         if (group[i] > 255) {
-            group[i] = '255';
+            group[i] = "255"
         }
         if (group[i] < 0) {
-            group[i] = '0';
+            group[i] = "0"
         }
     }
 
     // Mettre à jour la valeur de l'input avec les groupes corrigés
-    input.value = group.join('.');
-
-
+    input.value = group.join(".")
 }
 
-inputcidr.value = '/';
-inputcidr.addEventListener('input', () => {
-
+inputcidr.value = "/"
+inputcidr.addEventListener("input", () => {
     // Remplacer tous les caractères non numériques ou "/" par une chaîne vide
-    inputcidr.value = inputcidr.value.replace(/[^0-9/]/g, '');
+    inputcidr.value = inputcidr.value.replace(/[^0-9/]/g, "")
 
     // Mettre à jour la valeur de l'entrée avec la valeur filtrée
 
     if (inputcidr.value.length > 3) {
-        inputcidr.value = inputcidr.value.substring(0, 3);
+        inputcidr.value = inputcidr.value.substring(0, 3)
     }
-    if (inputcidr.value[1] + inputcidr.value[2] > '32' || inputcidr.value[2] === '/') {
-        inputcidr.value = '/' + inputcidr.value[1];
+    if (
+        inputcidr.value[1] + inputcidr.value[2] > "32" ||
+        inputcidr.value[2] === "/"
+    ) {
+        inputcidr.value = "/" + inputcidr.value[1]
     }
-    if (inputcidr.value.length === 0 || inputcidr.value[0] != '/' || inputcidr.value[1] === '0' || inputcidr.value[1] === '/') {
-        inputcidr.value = '/';
+    if (
+        inputcidr.value.length === 0 ||
+        inputcidr.value[0] != "/" ||
+        inputcidr.value[1] === "0" ||
+        inputcidr.value[1] === "/"
+    ) {
+        inputcidr.value = "/"
     }
-});
+})
 function updateValue() {
-    let numericValue = marge.value.replace(/[^0-9]/g, ''); // Garder seulement les chiffres
+    let numericValue = marge.value.replace(/[^0-9]/g, "") // Garder seulement les chiffres
 
     if (numericValue.length > 2) {
-        numericValue = numericValue.substring(0, 2); // Limite à 2 chiffres max
+        numericValue = numericValue.substring(0, 2) // Limite à 2 chiffres max
     }
 
-    if (numericValue.startsWith('0') && numericValue.length > 1) {
-        numericValue = numericValue.substring(1); // Éviter un "0" inutile devant
+    if (numericValue.startsWith("0") && numericValue.length > 1) {
+        numericValue = numericValue.substring(1) // Éviter un "0" inutile devant
     }
 
     // Ajouter % seulement s'il y a au moins un chiffre
-    marge.value = numericValue.length > 0 ? numericValue + '%' : '';
+    marge.value = numericValue.length > 0 ? numericValue + "%" : ""
 }
 
 // Gestion du backspace pour supprimer les chiffres et garder %
-marge.addEventListener('keydown', (e) => {
-    if (e.key === 'Backspace') {
-        let numericValue = marge.value.replace(/[^0-9]/g, ''); // Récupérer seulement les chiffres
+marge.addEventListener("keydown", (e) => {
+    if (e.key === "Backspace") {
+        let numericValue = marge.value.replace(/[^0-9]/g, "") // Récupérer seulement les chiffres
         if (numericValue.length > 0) {
-            e.preventDefault(); // Empêcher la suppression normale
-            numericValue = numericValue.slice(0, -1); // Supprimer le dernier chiffre
-            marge.value = numericValue.length > 0 ? numericValue + '%' : ''; // Mettre à jour l'affichage
+            e.preventDefault() // Empêcher la suppression normale
+            numericValue = numericValue.slice(0, -1) // Supprimer le dernier chiffre
+            marge.value = numericValue.length > 0 ? numericValue + "%" : "" // Mettre à jour l'affichage
         }
     }
-});
+})
 
 // Appliquer la mise à jour lors de la saisie
-marge.addEventListener('input', updateValue);
-sous_reseaux.addEventListener('input', () => {
-    sous_reseaux.value = sous_reseaux.value.replace(/[^0-9]/g, '');
+marge.addEventListener("input", updateValue)
+sous_reseaux.addEventListener("input", () => {
+    sous_reseaux.value = sous_reseaux.value.replace(/[^0-9]/g, "")
     if (sous_reseaux.value.length > 3) {
-        sous_reseaux.value = sous_reseaux.value.substring(0, 3);
+        sous_reseaux.value = sous_reseaux.value.substring(0, 3)
     }
-    if (sous_reseaux.value[0] === '0') {
-        sous_reseaux.value = '1';
+    if (sous_reseaux.value[0] === "0") {
+        sous_reseaux.value = "1"
     }
-
-});
+})
 
 // fonction qui permet de creer des box pour chaque sous réseau necessaire
 function inputbox() {
-    let boxconf = document.createElement('div');
-    boxconf.setAttribute('id', 'boxconf');
+    let boxconf = document.createElement("div")
+    boxconf.setAttribute("id", "boxconf")
 
-    let supprimer = document.createElement('button');
-    supprimer.textContent = 'x';
-    supprimer.setAttribute('id', 'supprimer');
+    let supprimer = document.createElement("button")
+    supprimer.textContent = "x"
+    supprimer.setAttribute("id", "supprimer")
 
-    let boxnh = document.createElement('div');
-    boxnh.setAttribute('id', 'boxnh');
+    let boxnh = document.createElement("div")
+    boxnh.setAttribute("id", "boxnh")
 
     //crée la div pour les noms de réseaux
-    let boxname = document.createElement('div');
-    let namechar = document.createElement('p');
-    namechar.textContent = 'Entrer le nom pour ce sous réseau ';
-    let nameinput = document.createElement('input');
-    nameinput.setAttribute('type', 'text');
-    nameinput.setAttribute('value', 'sous_réseau' + (listbox.length + 1));
+    let boxname = document.createElement("div")
+    let namechar = document.createElement("p")
+    namechar.textContent = "Entrer le nom pour ce sous réseau "
+    let nameinput = document.createElement("input")
+    nameinput.setAttribute("type", "text")
+    nameinput.setAttribute("value", "sous_réseau" + (listbox.length + 1))
 
-    boxname.appendChild(namechar);
-    boxname.appendChild(nameinput);
+    boxname.appendChild(namechar)
+    boxname.appendChild(nameinput)
 
     //crée la div pour le nombres machines necessaires
-    let boxhost = document.createElement('div');
-    let hostchar = document.createElement('p');
-    hostchar.textContent = ('Entrer le nombre de host nécessaire')
-    let hostinput = document.createElement('input');
-    hostinput.setAttribute('type', 'number');
-    hostinput.setAttribute('placeholder', 'ex : 10');
-    hostinput.addEventListener('input', () => {
-        hostinput.value = hostinput.value.replace(/[^0-9]/g, '');
+    let boxhost = document.createElement("div")
+    let hostchar = document.createElement("p")
+    hostchar.textContent = "Entrer le nombre de host nécessaire"
+    let hostinput = document.createElement("input")
+    hostinput.setAttribute("type", "number")
+    hostinput.setAttribute("placeholder", "ex : 10")
+    hostinput.addEventListener("input", () => {
+        hostinput.value = hostinput.value.replace(/[^0-9]/g, "")
         if (hostinput.value.length > 5) {
-            hostinput.value = hostinput.value.substring(0, 5);
+            hostinput.value = hostinput.value.substring(0, 5)
         }
-        if (hostinput.value[0] === '0') {
-            hostinput.value = '1';
+        if (hostinput.value[0] === "0") {
+            hostinput.value = "1"
         }
-
-    });
-    boxhost.appendChild(hostchar);
-    boxhost.appendChild(hostinput);
+    })
+    boxhost.appendChild(hostchar)
+    boxhost.appendChild(hostinput)
 
     // ajouter les elements dans les div
-    boxnh.appendChild(boxname);
-    boxnh.appendChild(boxhost);
-    boxconf.appendChild(boxnh);
-    boxconf.appendChild(supprimer);
-    content.appendChild(boxconf);
-    listbox.push(boxconf);
-    supprimer.addEventListener('click', () => {
-        content.removeChild(boxconf);
+    boxnh.appendChild(boxname)
+    boxnh.appendChild(boxhost)
+    boxconf.appendChild(boxnh)
+    boxconf.appendChild(supprimer)
+    content.appendChild(boxconf)
+    listbox.push(boxconf)
+    supprimer.addEventListener("click", () => {
+        content.removeChild(boxconf)
 
-
-        const index = listbox.indexOf(boxconf);
+        const index = listbox.indexOf(boxconf)
         if (index !== -1) {
-            listbox.splice(index, 1);
+            listbox.splice(index, 1)
         }
-
 
         for (let i = 0; i < listbox.length; i++) {
-            listbox[i].children[0].children[0].children[1].value = 'sous_réseau' + (i + 1);
+            listbox[i].children[0].children[0].children[1].value =
+                "sous_réseau" + (i + 1)
         }
-    });
+    })
 }
 
 function resultbox(netadress, mask, first, last, broadcast, cidr, name) {
     // div pour mettre tout les resultats
 
-    let resultbox = document.createElement('div');
-    resultbox.setAttribute('id', 'resultbox');
+    let resultbox = document.createElement("div")
+    resultbox.setAttribute("id", "resultbox")
     // affichage du nom du sous reseau
-    let resultname = document.createElement('p');
-    resultname.setAttribute('id', 'resultname');
-    resultname.textContent = name;
+    let resultname = document.createElement("p")
+    resultname.setAttribute("id", "resultname")
+    resultname.textContent = name
     if (plusdereseau) {
-        let plusdereseauchar = document.createElement('p');
-        plusdereseauchar.setAttribute('id', 'plusdereseauchar');
-        plusdereseauchar.textContent = 'il n\'y a pas assez d\'adresse pour ce sous reseau';
-        resultbox.appendChild(resultname);
-        resultbox.appendChild(plusdereseauchar);
-
+        let plusdereseauchar = document.createElement("p")
+        plusdereseauchar.setAttribute("id", "plusdereseauchar")
+        plusdereseauchar.textContent =
+            "il n'y a pas assez d'adresse pour ce sous reseau"
+        resultbox.appendChild(resultname)
+        resultbox.appendChild(plusdereseauchar)
     } else {
         // div pour la premiere ligne de resultat
-        let resultfirstline = document.createElement('div');
-        resultfirstline.setAttribute('id', 'resultfirstline');
-        resultfirstline.setAttribute('class', 'line');
+        let resultfirstline = document.createElement("div")
+        resultfirstline.setAttribute("id", "resultfirstline")
+        resultfirstline.setAttribute("class", "line")
 
         // div pour la deuxième ligne de resultat
-        let resultsecondline = document.createElement('div');
-        resultsecondline.setAttribute('id', 'resultsecondline');
-        resultsecondline.setAttribute('class', 'line');
+        let resultsecondline = document.createElement("div")
+        resultsecondline.setAttribute("id", "resultsecondline")
+        resultsecondline.setAttribute("class", "line")
 
-        // affichage du prochain reseau 
-        let resultadress = document.createElement('p');
-        resultadress.setAttribute('id', 'resultadress');
-        resultadress.textContent = 'adresse du reseau : ' + netadress.join('.');
+        // affichage du prochain reseau
+        let resultadress = document.createElement("p")
+        resultadress.setAttribute("id", "resultadress")
+        resultadress.textContent = "adresse du reseau : " + netadress.join(".")
 
         // affichage du masque
-        let resultmask = document.createElement('p');
-        resultmask.setAttribute('id', 'resultmask');
-        resultmask.textContent = 'masque : ' + mask.join('.');
+        let resultmask = document.createElement("p")
+        resultmask.setAttribute("id", "resultmask")
+        resultmask.textContent = "masque : " + mask.join(".")
 
         // affichage de la premiere adresse exploitable
-        let resultfirst = document.createElement('p');
-        resultfirst.setAttribute('id', 'resultfirst');
-        resultfirst.textContent = 'première adresse exploitable : ' + first.join('.');
+        let resultfirst = document.createElement("p")
+        resultfirst.setAttribute("id", "resultfirst")
+        resultfirst.textContent =
+            "première adresse exploitable : " + first.join(".")
 
         // affichage de la derniere adresse exploitable
-        let resultlast = document.createElement('p');
-        resultlast.setAttribute('id', 'resultlast');
-        resultlast.textContent = 'dernière adresse exploitable : ' + last.join('.');
+        let resultlast = document.createElement("p")
+        resultlast.setAttribute("id", "resultlast")
+        resultlast.textContent = "dernière adresse exploitable : " + last.join(".")
 
         // affichage de l'adresse de broadcast
-        let resultbroadcast = document.createElement('p');
-        resultbroadcast.setAttribute('id', 'resultbroadcast');
-        resultbroadcast.textContent = 'broadcast : ' + broadcast.join('.');
+        let resultbroadcast = document.createElement("p")
+        resultbroadcast.setAttribute("id", "resultbroadcast")
+        resultbroadcast.textContent = "broadcast : " + broadcast.join(".")
 
         // affichage du cidr
-        let resultcidr = document.createElement('p');
-        resultcidr.setAttribute('id', 'resultcidr');
-        resultcidr.textContent = 'cidr : /' + cidr;
+        let resultcidr = document.createElement("p")
+        resultcidr.setAttribute("id", "resultcidr")
+        resultcidr.textContent = "cidr : /" + cidr
 
-
-
-        resultfirstline.appendChild(resultadress);
-        resultfirstline.appendChild(resultmask);
-        resultfirstline.appendChild(resultcidr);
-        resultsecondline.appendChild(resultfirst);
-        resultsecondline.appendChild(resultlast);
-        resultsecondline.appendChild(resultbroadcast);
-        resultbox.appendChild(resultname);
-        resultbox.appendChild(resultfirstline);
-        resultbox.appendChild(resultsecondline);
+        resultfirstline.appendChild(resultadress)
+        resultfirstline.appendChild(resultmask)
+        resultfirstline.appendChild(resultcidr)
+        resultsecondline.appendChild(resultfirst)
+        resultsecondline.appendChild(resultlast)
+        resultsecondline.appendChild(resultbroadcast)
+        resultbox.appendChild(resultname)
+        resultbox.appendChild(resultfirstline)
+        resultbox.appendChild(resultsecondline)
     }
-    boxzone.appendChild(resultbox);
-
+    boxzone.appendChild(resultbox)
 }
-para.style.display = 'none';
+para.style.display = "none"
 
-valider.addEventListener('click', () => {
+valider.addEventListener("click", () => {
     setTimeout(() => {
         window.scrollTo({
             top: document.body.scrollHeight,
-            behavior: 'smooth'
-        });
-    }, 100);
+            behavior: "smooth",
+        })
+    }, 100)
     if (validerform) {
-        if (adress.value.length === 0 || inputcidr.value.length === 1 || sous_reseaux.value.length === 0) {
-            alert('veuillez remplir tous les champs');
+        if (
+            adress.value.length === 0 ||
+            inputcidr.value.length === 1 ||
+            sous_reseaux.value.length === 0
+        ) {
+            alert("veuillez remplir tous les champs")
         } else {
             // changer l'apparence des elements
-            inputs.style.height = '0';
-            boxzone.style.display = 'block';
-            envoyer.style.display = 'block';
-            para.style.height = '500px';
+            inputs.style.height = "0"
+            boxzone.style.display = "block"
+            envoyer.style.display = "block"
+            para.style.height = "500px"
             window.scrollTo({
                 top: document.body.scrollHeight,
-                behavior: 'smooth'
-            });
-            valider.innerHTML = "modifier";
-            validerform = false;
+                behavior: "smooth",
+            })
+            valider.innerHTML = "modifier"
+            validerform = false
 
-            para.style.display = 'block';
-            nbreseaux = sous_reseaux.value;
-            taillelistbox = listbox.length;
-            let addbox = nbreseaux - taillelistbox;
+            para.style.display = "block"
+            nbreseaux = sous_reseaux.value
+            taillelistbox = listbox.length
+            let addbox = nbreseaux - taillelistbox
             if (addbox < 0) {
                 for (let i = 0; i < -addbox; i++) {
                     content.removeChild(listbox.pop())
-
                 }
             } else {
                 for (let i = 1; i <= addbox; i++) {
@@ -345,111 +351,111 @@ valider.addEventListener('click', () => {
                 }
             }
             if (!buttonaddexist) {
-                let buttonadd = document.createElement('button');
-                buttonaddexist = true;
-                buttonadd.setAttribute('id', 'buttonadd');
-                buttonadd.textContent = 'ajouter';
-                buttonadd.setAttribute('class', 'mainbutton');
-                boxzone.appendChild(buttonadd);
-                buttonadd.addEventListener('click', () => {
+                let buttonadd = document.createElement("button")
+                buttonaddexist = true
+                buttonadd.setAttribute("id", "buttonadd")
+                buttonadd.textContent = "ajouter"
+                buttonadd.setAttribute("class", "mainbutton")
+                boxzone.appendChild(buttonadd)
+                buttonadd.addEventListener("click", () => {
                     inputbox()
                     boxzone.scrollTo({
                         top: boxzone.scrollHeight,
-                        behavior: 'smooth'
-                    });
-                });
-
+                        behavior: "smooth",
+                    })
+                })
             }
         }
-
     } else {
-
-        inputs.style.height = '480px';
-        valider.innerHTML = 'valider';
-        validerform = true;
-        para.style.height = '75px';
-        boxzone.style.display = 'none';
-        envoyer.style.display = 'block';
-
-
-
-
+        inputs.style.height = "480px"
+        valider.innerHTML = "valider"
+        validerform = true
+        para.style.height = "75px"
+        boxzone.style.display = "none"
+        envoyer.style.display = "block"
     }
-});
+})
 
 // bouton permettant de valider les informations et de calculer les adresses
-envoyer.addEventListener('click', () => {
+envoyer.addEventListener("click", () => {
     // Réinitialiser le tableau des résultats pour une nouvelle exécution
-    resultsArray = [];
-    nbadress = 0;  // Ajouter cette ligne
-    plusdereseau = false;
-    alrdnomore = false;
+    resultsArray = []
+    nbadress = 0 // Ajouter cette ligne
+    plusdereseau = false
+    alrdnomore = false
     setTimeout(() => {
         window.scrollTo({
             top: document.body.scrollHeight,
-            behavior: 'smooth'
-        });
-    }, 880);
+            behavior: "smooth",
+        })
+    }, 880)
     for (let i = 0; i < listbox.length; i++) {
-        if (listbox[i].children[0].children[0].children[1].value.length === 0 || listbox[i].children[0].children[1].children[1].value.length === 0) {
+        if (
+            listbox[i].children[0].children[0].children[1].value.length === 0 ||
+            listbox[i].children[0].children[1].children[1].value.length === 0
+        ) {
             inputvide = true
         }
     }
-    if (inputvide || adress.value.split('.').length !== 4 || inputcidr.value.length === 1) {
-        alert('veuillez remplir tous les champs');
+    if (
+        inputvide ||
+        adress.value.split(".").length !== 4 ||
+        inputcidr.value.length === 1
+    ) {
+        alert("veuillez remplir tous les champs")
         inputvide = false
-    }
-    else {
+    } else {
         // definir le nombre total d'adresses
-        let nbtotaladress = inputcidr.value.replace('/', '');
-        nbtotaladress = 2 ** (32 - nbtotaladress);
+        let nbtotaladress = inputcidr.value.replace("/", "")
+        nbtotaladress = 2 ** (32 - nbtotaladress)
         console.log(nbtotaladress)
-
 
         // trier la boxlist par ordre décroissant de machine
         listbox.sort((a, b) => {
-            return b.children[0].children[1].children[1].value - a.children[0].children[1].children[1].value
-        });
+            return (
+                b.children[0].children[1].children[1].value -
+                a.children[0].children[1].children[1].value
+            )
+        })
         //afficher l'adresse et le cidr d'origine
-        let adressorigin = document.createElement('p');
-        adressorigin.textContent = 'adresse d\'origine : ' + adress.value;
+        let adressorigin = document.createElement("p")
+        adressorigin.textContent = "adresse d'origine : " + adress.value
 
-        let cidrorigin = document.createElement('p');
-        cidrorigin.textContent = 'cidr d\'origine :' + inputcidr.value;
+        let cidrorigin = document.createElement("p")
+        cidrorigin.textContent = "cidr d'origine :" + inputcidr.value
 
-        boxzone.appendChild(adressorigin);
-        boxzone.appendChild(cidrorigin);
-
+        boxzone.appendChild(adressorigin)
+        boxzone.appendChild(cidrorigin)
 
         for (let x = 0; x < listbox.length; x++) {
             // Objet pour stocker les résultats de cette itération
-            let iterationResult = {};
+            let iterationResult = {}
 
             // definir l'adresse d'origine si se n'est pas la
             // premiere fois alors elle devient l'adresse du prochain reseau du reseau precedent.
             if (nextadress != 0) {
                 adressorigin = [...nextadress]
-            }
-            else {
-                adressorigin = adress.value.split('.')
+            } else {
+                adressorigin = adress.value.split(".")
             }
             // initialisation des variables qui se reinitialisent à chaque execution du bouton
-            let octetpas = 0;
-            let machinemarge = 0;
-            let maskval = 32;
+            let octetpas = 0
+            let machinemarge = 0
+            let maskval = 32
             let i = 0
             let puissance = 0
             let indiceoctet = 0
-            let mask = [];
-            let mask_decimal = [];
-
+            let mask = []
+            let mask_decimal = []
 
             // =====determiner le masque=====
 
             // trouver la puissance de 2 superieur à la valeur de machine
 
-            // ajouter la marge a machineval 
-            machinemarge = listbox[x].children[0].children[1].children[1].value / 100 * marge.value.replace('%', '');
+            // ajouter la marge a machineval
+            machinemarge =
+                (listbox[x].children[0].children[1].children[1].value / 100) *
+                marge.value.replace("%", "")
 
             machineval = listbox[x].children[0].children[1].children[1].value
             machineval = Number(machineval) + Number(machinemarge)
@@ -468,17 +474,21 @@ envoyer.addEventListener('click', () => {
             for (let i = 0; i < 32 - maskval; i++) {
                 mask.push(0)
             }
-            let octet1 = mask.slice(0, 8);
-            let octet2 = mask.slice(8, 16);
-            let octet3 = mask.slice(16, 24);
-            let octet4 = mask.slice(24, 32);
-            mask = [octet1.join(''), octet2.join(''), octet3.join(''), octet4.join('')];
+            let octet1 = mask.slice(0, 8)
+            let octet2 = mask.slice(8, 16)
+            let octet3 = mask.slice(16, 24)
+            let octet4 = mask.slice(24, 32)
+            mask = [
+                octet1.join(""),
+                octet2.join(""),
+                octet3.join(""),
+                octet4.join(""),
+            ]
 
             // convertir le masque en decimal
             mask.forEach(function (octet) {
                 mask_decimal.push(parseInt(octet, 2))
-
-            });
+            })
 
             // trouver le pas
             for (let t = 0; t < 4; t++) {
@@ -495,20 +505,17 @@ envoyer.addEventListener('click', () => {
             nextadress[indiceoctet] = parseInt(nextadress[indiceoctet]) + pas
             correction(nextadress)
 
-
-            //calculer la premiere adresse exploitable  
+            //calculer la premiere adresse exploitable
             premieradress = [...adressorigin]
             premieradress[3] = parseInt(premieradress[3]) + 1
             correction(premieradress)
             let adressmanquante = nbadress - nbtotaladress
-            let octetorigin = inputcidr.value.replace('/', '');
+            let octetorigin = inputcidr.value.replace("/", "")
             octetorigin = octetorigin / 8
             if (nbadress > nbtotaladress) {
-
-                let lastadress = adress.value.split('.')
+                let lastadress = adress.value.split(".")
                 for (let o = octetorigin; o <= 3; o++) {
                     lastadress[o] = 255
-
                 }
                 console.log(lastadress)
                 broadcast = [...lastadress]
@@ -531,12 +538,12 @@ envoyer.addEventListener('click', () => {
             let netname = listbox[x].children[0].children[0].children[1].value
             adressorigin = adressorigin
             if (nbadress > nbtotaladress && !alrdnomore) {
-                netname = netname + '(adresse manquante :' + adressmanquante + ')'
+                netname = netname + "(adresse manquante :" + adressmanquante + ")"
                 alrdnomore = true
             }
-            let octetfix = inputcidr.value.replace('/', '');
+            let octetfix = inputcidr.value.replace("/", "")
             octetfix = octetfix / 8 - 1
-            let adressorigincompare = adress.value.split('.')
+            let adressorigincompare = adress.value.split(".")
             for (let i = 0; i <= octetfix; i++) {
                 if (adressorigincompare[i] != adressorigin[i]) {
                     plusdereseau = true
@@ -553,11 +560,11 @@ envoyer.addEventListener('click', () => {
                 broadcast: [...broadcast],
                 cidr: maskval,
                 nombreMachines: machineval,
-                pasDeReseau: plusdereseau
-            };
+                pasDeReseau: plusdereseau,
+            }
 
             // Ajouter les résultats de cette itération au tableau
-            resultsArray.push(iterationResult);
+            resultsArray.push(iterationResult)
 
             //afficher les resultats
             let testbroadcast = adress.value.split('.')
@@ -599,167 +606,191 @@ envoyer.addEventListener('click', () => {
         // Fonctions pour les nouveaux boutons (à ajouter juste avant le dernier crochet fermant)
 
         // Fonction pour télécharger les résultats au format Excel
-        function printResults() {
-            // Créer une nouvelle fenêtre pour l'impression
-            const printWindow = window.open('', '_blank');
-        
-            // Préparer le contenu HTML à imprimer
-            let printContent = `
-        <html>
-        <head>
-            <style>
-                body { font-family: Arial, sans-serif; }
-                h1 { text-align: center; }
-                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                th { background-color: #f2f2f2; }
-                tr:nth-child(even) { background-color: #f9f9f9; }
-            </style>
-        </head>
-        <body>
-            <h1>Résultats du découpage VLSM</h1>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nom du réseau</th>
-                        <th>Adresse réseau</th>
-                        <th>Masque</th>
-                        <th>CIDR</th>
-                        <th>Première adresse</th>
-                        <th>Dernière adresse</th>
-                        <th>Broadcast</th>
-                        <th>Nb machines</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-        
-            // Ajouter les données
-            resultsArray.forEach(result => {
-                if (!result.pasDeReseau) {
-                    printContent += `<tr>
-                    <td>${result.nom}</td>
-                    <td>${result.adresseReseau.join('.')}</td>
-                    <td>${result.masque.join('.')}</td>
-                    <td>/${result.cidr}</td>
-                    <td>${result.premièreAdresse.join('.')}</td>
-                    <td>${result.dernièreAdresse.join('.')}</td>
-                    <td>${result.broadcast.join('.')}</td>
-                    <td>${result.nombreMachines}</td>
-                </tr>`;
-                }
-            });
-        
-            printContent += `
-                </tbody>
-            </table>
-        </body>
-        </html>`;
-        
-            // Écrire le contenu dans la nouvelle fenêtre
-            printWindow.document.write(printContent);
-            printWindow.document.close();
-        
-            // Attendre que le contenu soit chargé avant d'imprimer
-            printWindow.onload = function () {
-                printWindow.print();
-            };
-        }
-        
-        // Fonction pour télécharger les résultats en PDF
+
+
         function downloadPDF() {
-            // Vérifier si jsPDF est disponible
-            if (typeof jspdf === 'undefined') {
-                // Si jsPDF n'est pas chargé, l'ajouter dynamiquement
-                const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-                document.head.appendChild(script);
-                
-                // Ajouter également html2canvas
-                const html2canvasScript = document.createElement('script');
-                html2canvasScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-                document.head.appendChild(html2canvasScript);
-                
-                // Attendre que les scripts soient chargés
-                script.onload = html2canvasScript.onload = function() {
-                    setTimeout(generatePDF, 500);
-                };
-            } else {
-                generatePDF();
+            // Variable pour suivre le statut de chargement des scripts
+            let scriptsLoaded = {
+                jspdf: false,
+                html2canvas: false
+            };
+            
+            // Fonction qui vérifie si les deux scripts sont chargés
+            function checkScriptsLoaded() {
+                if (scriptsLoaded.jspdf && scriptsLoaded.html2canvas) {
+                    setTimeout(generatePDF, 1000);
+                }
             }
             
+            // Vérifier si les scripts sont déjà disponibles
+            if (typeof jspdf !== 'undefined' && typeof html2canvas !== 'undefined') {
+                generatePDF();
+            } else {
+                // Charger les scripts nécessaires s'ils ne sont pas disponibles
+                if (typeof jspdf === 'undefined') {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                    script.onload = function() {
+                        scriptsLoaded.jspdf = true;
+                        checkScriptsLoaded();
+                    };
+                    document.head.appendChild(script);
+                } else {
+                    scriptsLoaded.jspdf = true;
+                }
+                
+                if (typeof html2canvas === 'undefined') {
+                    const html2canvasScript = document.createElement('script');
+                    html2canvasScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                    html2canvasScript.onload = function() {
+                        scriptsLoaded.html2canvas = true;
+                        checkScriptsLoaded();
+                    };
+                    document.head.appendChild(html2canvasScript);
+                } else {
+                    scriptsLoaded.html2canvas = true;
+                }
+                
+                // Au cas où les deux scripts sont déjà chargés
+                checkScriptsLoaded();
+            }
+        
             function generatePDF() {
                 // Créer un élément div temporaire pour contenir le contenu
                 const tempDiv = document.createElement('div');
+                tempDiv.id = 'temp-pdf-container';
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.left = '-9999px'; // Hors écran mais toujours rendu
                 document.body.appendChild(tempDiv);
-                
-                // Préparer le contenu HTML avec le même style que pour l'impression
-                tempDiv.innerHTML = `
-                <div id="pdf-content" style="padding: 20px;">
-                    <h1 style="text-align: center;">Résultats du découpage VLSM</h1>
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                        <thead>
-                            <tr>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Nom du réseau</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Adresse réseau</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Masque</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">CIDR</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Première adresse</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Dernière adresse</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Broadcast</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Nb machines</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
         
-                // Ajouter les données
+                // Préparer le contenu HTML
+                tempDiv.innerHTML = `
+        <div id="pdf-content" style="padding: 20px; background-color: white;">
+            <h1 style="text-align: center;">Résultats du découpage VLSM</h1>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Nom du réseau</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Adresse réseau</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Masque</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">CIDR</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Première adresse</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Dernière adresse</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Broadcast</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Nb machines</th>
+                    </tr>
+                </thead>
+                <tbody id="pdf-table-body">
+                </tbody>
+            </table>
+        </div>`;
+        
+                // Référence au tbody du tableau dans tempDiv
+                const tbody = tempDiv.querySelector('#pdf-table-body');
+        
+                // Ajouter chaque ligne de données
                 resultsArray.forEach((result, index) => {
                     if (!result.pasDeReseau) {
-                        const bgColor = index % 2 === 1 ? '#f9f9f9' : '#ffffff';
-                        tempDiv.querySelector('tbody').innerHTML += `
-                        <tr style="background-color: ${bgColor};">
-                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${result.nom}</td>
-                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${result.adresseReseau.join('.')}</td>
-                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${result.masque.join('.')}</td>
-                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">/${result.cidr}</td>
-                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${result.premièreAdresse.join('.')}</td>
-                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${result.dernièreAdresse.join('.')}</td>
-                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${result.broadcast.join('.')}</td>
-                            <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${result.nombreMachines}</td>
-                        </tr>`;
+                        const row = document.createElement('tr');
+                        row.style.backgroundColor = index % 2 === 1 ? '#f9f9f9' : '#ffffff';
+        
+                        // Données pour chaque cellule
+                        const cells = [
+                            result.nom,
+                            result.adresseReseau.join('.'),
+                            result.masque.join('.'),
+                            '/' + result.cidr,
+                            result.premièreAdresse.join('.'),
+                            result.dernièreAdresse.join('.'),
+                            result.broadcast.join('.'),
+                            result.nombreMachines
+                        ];
+        
+                        // Créer et ajouter chaque cellule
+                        cells.forEach(cellText => {
+                            const td = document.createElement('td');
+                            td.textContent = cellText;
+                            td.style.border = '1px solid #ddd';
+                            td.style.padding = '8px';
+                            td.style.textAlign = 'left';
+                            row.appendChild(td);
+                        });
+        
+                        tbody.appendChild(row);
                     }
                 });
         
-                tempDiv.querySelector('#pdf-content').innerHTML += `
-                        </tbody>
-                    </table>
-                </div>`;
-                
-                // Convertir le contenu en PDF avec html2canvas et jsPDF
-                const element = tempDiv.querySelector('#pdf-content');
-                
-                html2canvas(element).then(canvas => {
-                    const imgData = canvas.toDataURL('image/png');
-                    const pdf = new jspdf.jsPDF('l', 'mm', 'a4'); // Paysage pour une meilleure lisibilité du tableau
+                // Flag pour suivre si le PDF a déjà été généré
+                let pdfGenerated = false;
+        
+                // Attendre que le DOM soit mis à jour
+                setTimeout(() => {
+                    // Éviter la double génération
+                    if (pdfGenerated) return;
                     
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
-                    const imgWidth = canvas.width;
-                    const imgHeight = canvas.height;
-                    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-                    const imgX = (pdfWidth - imgWidth * ratio) / 2;
-                    const imgY = 20;
-                    
-                    pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
-                    pdf.save('resultats_vlsm.pdf');
-                    
-                    // Supprimer l'élément temporaire
-                    document.body.removeChild(tempDiv);
-                });
+                    const element = document.getElementById('pdf-content');
+        
+                    // S'assurer que l'élément est correctement rendu
+                    if (!element) {
+                        console.error("Élément PDF non trouvé");
+                        return;
+                    }
+        
+                    // Options pour html2canvas pour améliorer la qualité
+                    const options = {
+                        scale: 2, // Augmenter l'échelle pour une meilleure qualité
+                        useCORS: true,
+                        logging: true,
+                        backgroundColor: '#ffffff'
+                    };
+        
+                    html2canvas(element, options).then(canvas => {
+                        pdfGenerated = true;
+                        const imgData = canvas.toDataURL('image/png');
+                        const pdf = new jspdf.jsPDF('l', 'mm', 'a4'); // Format paysage
+        
+                        const pdfWidth = pdf.internal.pageSize.getWidth();
+                        const pdfHeight = pdf.internal.pageSize.getHeight();
+                        const imgWidth = canvas.width;
+                        const imgHeight = canvas.height;
+        
+                        // Calculer le ratio pour adapter l'image à la page PDF
+                        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+                        const imgX = (pdfWidth - imgWidth * ratio) / 2;
+        
+                        // Si le contenu est trop grand, le diviser en plusieurs pages
+                        if (imgHeight * ratio > pdfHeight) {
+                            let heightLeft = imgHeight;
+                            let position = 0;
+                            let page = 1;
+        
+                            while (heightLeft > 0) {
+                                pdf.addImage(imgData, 'PNG', imgX, 10, imgWidth * ratio, imgHeight * ratio, '', 'FAST');
+                                heightLeft -= pdfHeight;
+                                position -= pdfHeight;
+        
+                                if (heightLeft > 0) {
+                                    pdf.addPage();
+                                    page++;
+                                }
+                            }
+                        } else {
+                            // Si tout tient sur une page
+                            pdf.addImage(imgData, 'PNG', imgX, 10, imgWidth * ratio, imgHeight * ratio);
+                        }
+        
+                        pdf.save('resultats_vlsm.pdf');
+        
+                        // Supprimer l'élément temporaire
+                        document.body.removeChild(tempDiv);
+                    }).catch(error => {
+                        console.error("Erreur lors de la génération du PDF:", error);
+                        alert("Erreur lors de la génération du PDF. Veuillez réessayer.");
+                        document.body.removeChild(tempDiv);
+                    });
+                }, 500); // Attendre 500ms pour s'assurer que le DOM est mis à jour
             }
         }
-
         // Fonction pour afficher les résultats en mode tableau
         function showTableView() {
             // Vider le contenu actuel
@@ -868,73 +899,7 @@ envoyer.addEventListener('click', () => {
         }
 
 
-        // Fonction pour imprimer les résultats
-        function printResults() {
-            // Créer une nouvelle fenêtre pour l'impression
-            const printWindow = window.open('', '_blank');
 
-            // Préparer le contenu HTML à imprimer
-            let printContent = `
-    <html>
-    <head>
-        <style>
-            body { font-family: Arial, sans-serif; }
-            h1 { text-align: center; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-            tr:nth-child(even) { background-color: #f9f9f9; }
-        </style>
-    </head>
-    <body>
-        <h1>Résultats du découpage VLSM</h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>Nom du réseau</th>
-                    <th>Adresse réseau</th>
-                    <th>Masque</th>
-                    <th>CIDR</th>
-                    <th>Première adresse</th>
-                    <th>Dernière adresse</th>
-                    <th>Broadcast</th>
-                    <th>Nb machines</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-            // Ajouter les données
-            resultsArray.forEach(result => {
-                if (!result.pasDeReseau) {
-                    printContent += `<tr>
-                <td>${result.nom}</td>
-                <td>${result.adresseReseau.join('.')}</td>
-                <td>${result.masque.join('.')}</td>
-                <td>/${result.cidr}</td>
-                <td>${result.premièreAdresse.join('.')}</td>
-                <td>${result.dernièreAdresse.join('.')}</td>
-                <td>${result.broadcast.join('.')}</td>
-                <td>${result.nombreMachines}</td>
-            </tr>`;
-                }
-            });
-
-            printContent += `
-            </tbody>
-        </table>
-    </body>
-    </html>`;
-
-            // Écrire le contenu dans la nouvelle fenêtre
-            printWindow.document.write(printContent);
-            printWindow.document.close();
-
-            // Attendre que le contenu soit chargé avant d'imprimer
-            printWindow.onload = function () {
-                printWindow.print();
-            };
-        }
 
         // Fonction pour créer les boutons d'action
         function createActionButtons() {
@@ -955,7 +920,7 @@ envoyer.addEventListener('click', () => {
 
             // Bouton pour télécharger en Excel (CSV)
             const downloadButton = document.createElement('button');
-            downloadButton.textContent = 'Télécharger Excel';
+            downloadButton.textContent = 'Télécharger PDF';
             downloadButton.classList.add('mainbutton');
             downloadButton.addEventListener('click', downloadPDF);
 
@@ -963,7 +928,6 @@ envoyer.addEventListener('click', () => {
             const printButton = document.createElement('button');
             printButton.textContent = 'Imprimer';
             printButton.classList.add('mainbutton');
-            printButton.addEventListener('click', printResults);
 
             // Bouton DHCP (nouveau)
             const dhcpButton = document.createElement('button');
@@ -985,7 +949,6 @@ envoyer.addEventListener('click', () => {
 
             // Ajouter les boutons au conteneur
             buttonContainer.appendChild(downloadButton);
-            buttonContainer.appendChild(printButton);
             buttonContainer.appendChild(dhcpButton);
             buttonContainer.appendChild(routeurButton);
 
@@ -1089,8 +1052,8 @@ envoyer.addEventListener('click', () => {
 });
 
 // permet d'assigner le bouton valider à la touche entrée
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        valider.click();
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+        valider.click()
     }
-});
+})
