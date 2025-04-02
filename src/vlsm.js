@@ -2,9 +2,9 @@ import {
   generateDhcpScript,
   generateDhcpScriptFromCalculator,
   saveScriptToFile,
-} from "./script_dhcp.js"
+} from "./scripts/script_dhcp.js"
 
-import { generateCiscoSerialConfigScript } from "./script_routeur_pyserial.js"
+import { generateCiscoSerialConfigScript } from "./scripts/script_routeur_pyserial.js"
 // les boutons
 let valider = document.getElementById("valider1")
 let envoyer = document.getElementById("envoyer")
