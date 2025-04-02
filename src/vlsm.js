@@ -59,7 +59,7 @@ function correction(adresse) {
   }
   return adresse
 }
-function formatInput(input) {
+export function formatInput(input) {
   // Supprimer tous les caractères non numériques et non points
   let value = input.value.replace(/[^\d.]/g, "")
 
@@ -820,7 +820,7 @@ envoyer.addEventListener("click", () => {
             result.premièreAdresse.join("."),
             result.dernièreAdresse.join("."),
             result.broadcast.join("."),
-            result.nombreMachines - 2 ,
+            result.nombreMachines - 2,
           ]
 
           cells.forEach((cellText) => {
@@ -837,38 +837,6 @@ envoyer.addEventListener("click", () => {
       boxzone.appendChild(table)
 
       // Ne pas ajouter le bouton retour puisque c'est la vue par défaut maintenant
-    }
-
-    // Fonction pour revenir à la vue normale
-    function showNormalView() {
-      // Vider le contenu actuel
-      boxzone.innerHTML = ""
-
-      // Ajouter l'adresse et le cidr d'origine au début
-      let adressOriginElement = document.createElement("p")
-      adressOriginElement.textContent = "Adresse d'origine : " + adress.value
-
-      let cidrOriginElement = document.createElement("p")
-      cidrOriginElement.textContent = "CIDR d'origine : " + inputcidr.value
-
-      boxzone.appendChild(adressOriginElement)
-      boxzone.appendChild(cidrOriginElement)
-
-      // Recréer les boîtes de résultat
-      resultsArray.forEach((result) => {
-        resultbox(
-          result.adresseReseau,
-          result.masque,
-          result.premièreAdresse,
-          result.dernièreAdresse,
-          result.broadcast,
-          result.cidr,
-          result.nom
-        )
-      })
-
-      // Recréer les boutons d'action
-      createActionButtons()
     }
 
     // Fonction pour créer les boutons d'action
@@ -927,7 +895,7 @@ envoyer.addEventListener("click", () => {
       buttonContainer.appendChild(downloadButton)
       buttonContainer.appendChild(dhcpButton)
       buttonContainer.appendChild(routeurButton)
-     buttonContainer.appendChild(routeurButton2)
+      buttonContainer.appendChild(routeurButton2)
 
       // Ajouter le conteneur à la fin du body
       body.appendChild(buttonContainer)
