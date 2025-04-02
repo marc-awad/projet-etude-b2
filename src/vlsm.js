@@ -1,3 +1,4 @@
+import { generateDhcpScript, generateDhcpScriptFromCalculator, saveScriptToFile } from './script_dhcp.js';
 // les boutons
 let valider = document.getElementById('valider1');
 let envoyer = document.getElementById('envoyer');
@@ -32,7 +33,7 @@ let premieradress = 0;
 let dernieradress = 0;
 let broadcast = 0;
 let adressorigin = 0;
-let nbreseau = 0;
+let nbreseaux = 0;
 let taillelistbox = 0;
 let listbox = [];
 let buttonaddexist = false;
@@ -447,8 +448,8 @@ envoyer.addEventListener('click', () => {
             // trouver la puissance de 2 superieur à la valeur de machine
 
             // ajouter la marge a machineval 
-            machinemarge = listbox[x].children[0].children[1].children[1].value/100 * marge.value.replace('%', '');
-        
+            machinemarge = listbox[x].children[0].children[1].children[1].value / 100 * marge.value.replace('%', '');
+
             machineval = listbox[x].children[0].children[1].children[1].value
             machineval = Number(machineval) + Number(machinemarge)
             machineval = Number(machineval) + 2
@@ -553,7 +554,7 @@ envoyer.addEventListener('click', () => {
                 nombreMachines: machineval,
                 pasDeReseau: plusdereseau
             };
-            
+
             // Ajouter les résultats de cette itération au tableau
             resultsArray.push(iterationResult);
 
@@ -578,10 +579,26 @@ envoyer.addEventListener('click', () => {
                 break
             }
         }
-        
+
         // Afficher le tableau des résultats dans la console pour vérification
         console.log("Résultats de tous les sous-réseaux:", resultsArray);
+        const dhcpOptions = {
+            serverIP: "192.168.100.10",
+            defaultGateway: "192.168.100.1",
+            networkInterfaceAlias: "Ethernet",
+            includeDnsServer: true,
+            dnsServerIP: "8.8.8.8"
+        };
+    
+        // Générer le script DHCP à partir des résultats
+        const dhcpScript = generateDhcpScript(resultsArray, dhcpOptions);
+    
+        // Sauvegarder le script dans un fichier
+        saveScriptToFile(dhcpScript, "config-dhcp.ps1");
     }
+    
+
+    
 });
 
 // permet d'assigner le bouton valider à la touche entrée

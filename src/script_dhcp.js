@@ -6,7 +6,7 @@
  * @param {Object} configOptions - Options supplémentaires pour la configuration du serveur DHCP
  * @returns {string} - Le script PowerShell généré
  */
-function generateDhcpScript(subnetsArray, configOptions = {}) {
+export function generateDhcpScript(subnetsArray, configOptions = {}) {
     // Valeurs par défaut
     const options = {
         serverIP: configOptions.serverIP || "192.168.100.10",
@@ -189,7 +189,7 @@ Write-Host "Pour vérifier la configuration, ouvrez le gestionnaire DHCP (dhcpmg
  * @param {string} script - Le script PowerShell généré
  * @param {string} filename - Nom du fichier de sortie (par défaut: dhcp-config.ps1)
  */
-function saveScriptToFile(script, filename = "dhcp-config.ps1") {
+export function saveScriptToFile(script, filename = "dhcp-config.ps1") {
     try {
         // Dans un environnement de navigateur, créer un blob et proposer le téléchargement
         const blob = new Blob([script], { type: 'text/plain' });
@@ -217,7 +217,7 @@ function saveScriptToFile(script, filename = "dhcp-config.ps1") {
  * @param {string} filename - Nom du fichier de sortie (si saveToFile est true)
  * @returns {string} - Le script PowerShell généré
  */
-function generateDhcpScriptFromCalculator(resultsArray, options = {}, saveToFile = false, filename = "dhcp-config.ps1") {
+export function generateDhcpScriptFromCalculator(resultsArray, options = {}, saveToFile = false, filename = "dhcp-config.ps1") {
     // Vérifier si resultsArray est valide
     if (!Array.isArray(resultsArray) || resultsArray.length === 0) {
         console.error("Erreur: résultats de sous-réseaux invalides ou vides");
