@@ -838,38 +838,6 @@ envoyer.addEventListener("click", () => {
       // Ne pas ajouter le bouton retour puisque c'est la vue par défaut maintenant
     }
 
-    // Fonction pour revenir à la vue normale
-    function showNormalView() {
-      // Vider le contenu actuel
-      boxzone.innerHTML = ""
-
-      // Ajouter l'adresse et le cidr d'origine au début
-      let adressOriginElement = document.createElement("p")
-      adressOriginElement.textContent = "Adresse d'origine : " + adress.value
-
-      let cidrOriginElement = document.createElement("p")
-      cidrOriginElement.textContent = "CIDR d'origine : " + inputcidr.value
-
-      boxzone.appendChild(adressOriginElement)
-      boxzone.appendChild(cidrOriginElement)
-
-      // Recréer les boîtes de résultat
-      resultsArray.forEach((result) => {
-        resultbox(
-          result.adresseReseau,
-          result.masque,
-          result.premièreAdresse,
-          result.dernièreAdresse,
-          result.broadcast,
-          result.cidr,
-          result.nom
-        )
-      })
-
-      // Recréer les boutons d'action
-      createActionButtons()
-    }
-
         // Fonction pour créer les boutons d'action
         function createActionButtons() {
             // Supprimer les boutons existants si présents
