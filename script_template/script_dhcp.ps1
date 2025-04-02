@@ -10,8 +10,8 @@ function Get-ValidatedInput {
     )
     
     do {
-        $input = Read-Host "$Prompt [$Default]"
-        if ([string]::IsNullOrWhiteSpace($input)) { $input = $Default }
+        $userInput = Read-Host "$Prompt [$Default]"
+        if ([string]::IsNullOrWhiteSpace($userInput)) { $userInput = $Default }
         $valid = & $Validation $input
         if (-not $valid) {
             Write-Host "Entrée invalide. Veuillez réessayer." -ForegroundColor Red
