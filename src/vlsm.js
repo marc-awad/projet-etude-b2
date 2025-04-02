@@ -524,13 +524,12 @@ envoyer.addEventListener("click", () => {
             boxzone.style.height = "0"
             setTimeout(() => {
                 boxzone.style.height = "530px"
-                para.style.height = "600px"
+                para.style.height = "auto"
             }, 500)
             setTimeout(() => {
                 para.style.height = "500px"
                 envoyer.style.display = "none"
                 content.style.display = "none"
-                buttonadd.style.display = "none"
                 boxzone.style.display = "block"
             }, 450)
             // resultbox(adressorigin, mask_decimal, premieradress, dernieradress, broadcast, maskval, netname)
