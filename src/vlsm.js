@@ -621,7 +621,7 @@ envoyer.addEventListener("click", () => {
 
       function checkScriptsLoaded() {
         if (scriptsLoaded.jspdf && scriptsLoaded.html2canvas) {
-          setTimeout(generatePDF, 1000)
+          setTimeout(generatePDF, 100)
         }
       }
 
