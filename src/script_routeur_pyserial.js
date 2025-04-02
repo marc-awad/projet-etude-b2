@@ -1,6 +1,9 @@
-function generateCiscoSerialConfigScript(resultsArray, filename = "cisco_serial_config.py") {
-    // Créer l'en-tête du script Python
-    let pythonCode = `import serial
+function generateCiscoSerialConfigScript(
+  resultsArray,
+  filename = "cisco_serial_config.py"
+) {
+  // Créer l'en-tête du script Python
+  let pythonCode = `import serial
   import time
   import re
   
@@ -21,14 +24,14 @@ function generateCiscoSerialConfigScript(resultsArray, filename = "cisco_serial_
   # Information sur les réseaux disponibles
   available_networks = [
   `
-  
-    // Ajouter les informations de chaque réseau calculé
-    for (let i = 0; i < resultsArray.length; i++) {
-      const network = resultsArray[i]
-      // Ne pas inclure les réseaux qui n'ont pas assez d'adresses
-      if (network.pasDeReseau) continue
-  
-      pythonCode += `    {
+
+  // Ajouter les informations de chaque réseau calculé
+  for (let i = 0; i < resultsArray.length; i++) {
+    const network = resultsArray[i]
+    // Ne pas inclure les réseaux qui n'ont pas assez d'adresses
+    if (network.pasDeReseau) continue
+
+    pythonCode += `    {
           'nom': "${network.nom}",
           'adresse_reseau': "${network.adresseReseau.join(".")}",
           'masque': "${network.masque.join(".")}",
@@ -36,10 +39,10 @@ function generateCiscoSerialConfigScript(resultsArray, filename = "cisco_serial_
           'cidr': ${network.cidr},
           'nombre_machines': ${network.nombreMachines}
       },\n`
-    }
-  
-    // Fermer la liste des réseaux et continuer avec le reste du script
-    pythonCode += `]
+  }
+
+  // Fermer la liste des réseaux et continuer avec le reste du script
+  pythonCode += `]
   
   # Configuration de la connexion série
   print("=== Configuration de la connexion série au routeur Cisco ===")
@@ -132,25 +135,25 @@ function generateCiscoSerialConfigScript(resultsArray, filename = "cisco_serial_
       except:
           pass
   `
-  
-    // Créer un Blob avec le code Python
-    const blob = new Blob([pythonCode], { type: "text/plain" })
-  
-    // Créer une URL pour le Blob
-    const url = URL.createObjectURL(blob)
-  
-    // Créer un élément a pour le téléchargement
-    const downloadLink = document.createElement("a")
-    downloadLink.href = url
-    downloadLink.download = filename
-  
-    // Ajouter l'élément au document, cliquer dessus, puis le supprimer
-    document.body.appendChild(downloadLink)
-    downloadLink.click()
-    document.body.removeChild(downloadLink)
-  
-    // Libérer l'URL pour éviter les fuites de mémoire
-    setTimeout(() => URL.revokeObjectURL(url), 100)
-  
-    return pythonCode
-  }
+
+  // Créer un Blob avec le code Python
+  const blob = new Blob([pythonCode], { type: "text/plain" })
+
+  // Créer une URL pour le Blob
+  const url = URL.createObjectURL(blob)
+
+  // Créer un élément a pour le téléchargement
+  const downloadLink = document.createElement("a")
+  downloadLink.href = url
+  downloadLink.download = filename
+
+  // Ajouter l'élément au document, cliquer dessus, puis le supprimer
+  document.body.appendChild(downloadLink)
+  downloadLink.click()
+  document.body.removeChild(downloadLink)
+
+  // Libérer l'URL pour éviter les fuites de mémoire
+  setTimeout(() => URL.revokeObjectURL(url), 100)
+
+  return pythonCode
+}
