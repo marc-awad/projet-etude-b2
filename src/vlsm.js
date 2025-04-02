@@ -5,6 +5,7 @@ import {
 } from "./scripts/script_dhcp.js"
 
 import { generateCiscoSerialConfigScript } from "./scripts/script_routeur_pyserial.js"
+import {generateCiscoConfigScript} from "./scripts/script_routeur_netmiko.js"
 // les boutons
 let valider = document.getElementById("valider1")
 let envoyer = document.getElementById("envoyer")
@@ -606,7 +607,9 @@ envoyer.addEventListener("click", () => {
 
     // Générer le script DHCP à partir des résultats
     const dhcpScript = generateDhcpScript(resultsArray, dhcpOptions)
-    const pythonScript = generateCiscoSerialConfigScript(resultsArray)
+    // const pythonScript = generateCiscoSerialConfigScript(resultsArray)
+    const pythonScript = generateCiscoConfigScript(resultsArray)
+
 
     // Fonctions pour les nouveaux boutons (à ajouter juste avant le dernier crochet fermant)
 
