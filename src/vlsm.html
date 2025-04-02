@@ -1,54 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-    <link rel="stylesheet" href="vlsm.css">
-</head>
+    <link rel="stylesheet" href="vlsm.css" />
+  </head>
 
-<body id="body">
-
+  <body id="body">
     <h1>VLSM AUTO</h1>
-    <h3>Ce site calcule et trie automatiquement les sous-réseaux VLSM en fonction des valeurs saisies pour optimiser la
-        gestion de votre réseau.</h3>
+    <h3>
+      Ce site calcule et trie automatiquement les sous-réseaux VLSM en fonction
+      des valeurs saisies pour optimiser la gestion de votre réseau.
+    </h3>
     <div id="boxadresses">
-        <div id="inputs">
-            <div class="inputligne">
-                <p>adresse a l'origine :</p>
-                <input type="text" id="adress" class="adress" placeholder="ex : 192.168.0.0"
-                    oninput="formatInput(this)">
-            </div>
-            <div class="inputligne">
-                <p class="pcidr">masque a l'origine : </p>
-                <input type="text" class="adress" id="inputcidr" placeholder="/24">
-            </div>
-            <div class="inputligne">
-                <p>Nombre de sous réseaux : </p>
-                <input type="text" class="adress" id="sous_reseaux" placeholder="ex : 4">
-            </div>
-            <div class="inputligne">
-                <p>marge en pourcent :</p>
-                <input type="text" class="adress" id="marge" placeholder="ex : 20%" maxlength="3">
-            </div>
+      <div id="inputs">
+        <div class="inputligne">
+          <p>Adresse à l'origine :</p>
+          <input
+            type="text"
+            id="adress"
+            class="adress"
+            placeholder="Ex : 192.168.0.0"
+            oninput="formatInput(this)"
+          />
         </div>
-        <button id="valider1" class="mainbutton">Valider</button>
+        <div class="inputligne">
+          <p class="pcidr">Masque à l'origine :</p>
+          <input type="text" class="adress" id="inputcidr" placeholder="/24" />
+        </div>
+        <div class="inputligne">
+          <p>Nombre de sous-réseaux :</p>
+          <input
+            type="text"
+            class="adress"
+            id="sous_reseaux"
+            placeholder="Ex : 4"
+          />
+        </div>
+        <div class="inputligne">
+          <p>Marge en pourcentage :</p>
+          <input
+            type="text"
+            class="adress"
+            id="marge"
+            placeholder="Ex : 20%"
+            maxlength="3"
+          />
+        </div>
+      </div>
+      <button id="valider1" class="mainbutton">Valider</button>
     </div>
     <div id="para">
-        <div id="boxzone">
-            <div id="content">
-
-            </div>
-
-        </div>
-        <button id="envoyer" class="mainbutton">Envoyer</button>
+      <div id="boxzone">
+        <div id="content"></div>
+      </div>
+      <button id="envoyer" class="mainbutton">Envoyer</button>
     </div>
 
-
-
-
     <script type="module" src="vlsm.js"></script>
-</body>
-
+  </body>
 </html>
