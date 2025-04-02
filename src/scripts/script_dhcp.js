@@ -46,6 +46,16 @@ $DefaultGateway = "${options.defaultGateway}"
 ${options.includeDnsServer ? `$DNSServer = "${options.dnsServerIP}"` : ''}
 
 # Vérification que le service DHCP est disponible
+# Installation du rôle DHCP et des outils d'administration
+Write-Host "\nInstallation du rôle DHCP et des outils d'administration..." -ForegroundColor Cyan
+try {
+    Install-WindowsFeature DHCP -IncludeManagementTools -ErrorAction Stop
+    Write-Host "Rôle DHCP installé avec succès." -ForegroundColor Green
+} catch {
+    Write-Host "Erreur lors de l'installation du rôle DHCP: $_" -ForegroundColor Red
+    exit
+}
+
 try {
     $dhcpService = Get-Service DHCPServer -ErrorAction Stop
     if ($dhcpService.Status -ne "Running") {
@@ -122,10 +132,13 @@ Write-Host "Nombre d'étendues configurées : ${validSubnets.length}" -Foregroun
 Get-DhcpServerv4Scope | Format-Table -Property ScopeId, Name, SubnetMask, StartRange, EndRange, State -AutoSize
 
 Write-Host "-------------------------------------------" -ForegroundColor Cyan
-Write-Host "\\nLa configuration des étendues DHCP est terminée." -ForegroundColor Green`;
+Write-Host "\\nLa configuration des étendues DHCP est terminée." -ForegroundColor Green
+shutdown /r /t 10
+`;
 
     return powershellScript;
 }
+
 
 /**
  * Sauvegarde le script PowerShell généré dans un fichier
