@@ -368,7 +368,7 @@ valider.addEventListener("click", () => {
       }
     }
   } else {
-    inputs.style.height = "480px"
+    inputs.style.height = "300px"
     valider.innerHTML = "valider"
     validerform = true
     para.style.height = "75px"
