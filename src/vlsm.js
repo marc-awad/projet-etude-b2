@@ -901,7 +901,7 @@ envoyer.addEventListener("click", () => {
 
       // Bouton DHCP (nouveau)
       const dhcpButton = document.createElement("button")
-      dhcpButton.textContent = "DHCP"
+      dhcpButton.textContent = "Script DHCP"
       dhcpButton.classList.add("mainbutton")
       dhcpButton.addEventListener("click", () => {
         // Sauvegarder le script dans un fichier
@@ -913,13 +913,21 @@ envoyer.addEventListener("click", () => {
       routeurButton.textContent = "ROUTEUR SSH"
       routeurButton.classList.add("mainbutton")
       routeurButton.addEventListener("click", () => {
-        saveScriptToFile(pythonScriptSSH, "config-routeur.py")
+        saveScriptToFile(pythonScriptSSH, "config-routeur-ssh.py")
+      })
+      // Bouton ROUTEUR (nouveau)
+      const routeurButton2 = document.createElement("button")
+      routeurButton2.textContent = "ROUTEUR Console"
+      routeurButton2.classList.add("mainbutton")
+      routeurButton2.addEventListener("click", () => {
+        saveScriptToFile(pythonScriptConsole, "config-routeur-console.py")
       })
 
       // Ajouter les boutons au conteneur
       buttonContainer.appendChild(downloadButton)
       buttonContainer.appendChild(dhcpButton)
       buttonContainer.appendChild(routeurButton)
+     buttonContainer.appendChild(routeurButton2)
 
       // Ajouter le conteneur à la fin du body
       body.appendChild(buttonContainer)
