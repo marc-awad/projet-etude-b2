@@ -331,7 +331,29 @@ function resultbox(netadress, mask, first, last, broadcast, cidr, name) {
     boxzone.appendChild(resultbox)
 }
 para.style.display = "none"
-
+// Fermer la boîte
+function closeBoxzone() {
+    const boxzone = document.getElementById('boxzone');
+    boxzone.classList.add('closing');
+  }
+  
+  // Ouvrir la boîte
+  function openBoxzone() {
+    const boxzone = document.getElementById('boxzone');
+    
+    // Si la boîte est complètement cachée (display: none)
+    if (boxzone.style.display === 'none') {
+      boxzone.style.display = 'block';
+      
+      // Petit délai pour permettre au navigateur de traiter le changement
+      setTimeout(() => {
+        boxzone.classList.remove('closing');
+      }, 100);
+    } else {
+      // Si la boîte est juste "fermée" mais toujours dans le DOM
+      boxzone.classList.remove('closing');
+    }
+  }
 valider.addEventListener("click", () => {
     setTimeout(() => {
         window.scrollTo({
@@ -348,8 +370,9 @@ valider.addEventListener("click", () => {
             alert("veuillez remplir tous les champs")
         } else {
             // changer l'apparence des elements
-            inputs.style.height = "0"
-            boxzone.style.display = "block"
+           
+            inputs.style.maxHeight  = "0";
+            openBoxzone()
             envoyer.style.display = "block"
             para.style.height = "500px"
             window.scrollTo({
@@ -389,11 +412,12 @@ valider.addEventListener("click", () => {
             }
         }
     } else {
-        inputs.style.height = "300px"
+        
+        inputs.style.maxHeight = "1000px";
         valider.innerHTML = "valider"
         validerform = true
         para.style.height = "75px"
-        boxzone.style.display = "none"
+        closeBoxzone()
         envoyer.style.display = "block"
     }
 })

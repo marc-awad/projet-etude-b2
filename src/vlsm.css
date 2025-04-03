@@ -170,12 +170,14 @@ h3 {
 }
 
 #inputs {
+  max-height: 1000px;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  transition: height var(--transition-normal);
+  transition: max-height 0.8s cubic-bezier(0.25, 1, 0.5, 1);
   overflow: hidden;
 }
+
 
 .inputligne {
   display: flex;
@@ -465,12 +467,24 @@ input {
   box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0, 229, 255, 0.1);
   padding: 2rem;
   margin-bottom: 1.5rem;
-  transition: height var(--transition-normal);
-  display: block; /* Changed from 'none' to 'block' */
+  /* Ces propriétés contrôlent la transition */
+  transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease, margin 0.3s ease, border-width 0.3s ease;
+  display: block;
   overflow-y: scroll;
   max-height: 55vh;
   border: 1px solid var(--border-color);
   position: relative;
+  opacity: 1;
+}
+
+#boxzone.closing {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-width: 0;
+  overflow: hidden;
 }
 
 #boxzone::before {
@@ -482,9 +496,7 @@ input {
   height: 3px;
   background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
   box-shadow: var(--glow-primary);
-  
 }
-
 #content {
   display: flex;
   flex-direction: column;
