@@ -1,6 +1,4 @@
-export function generateCiscoConfigScript(
-  resultsArray,
-) {
+export function generateCiscoConfigScript(resultsArray) {
   // Créer l'en-tête du script Python
   let pythonCode = `import getpass
 from netmiko import ConnectHandler
@@ -105,6 +103,7 @@ try:
     commands = ["configure terminal"]
     for name, ip, mask in interfaces:
         commands.append(f"interface {name}")
+        commands.append("no ip address")
         commands.append(f"ip address {ip} {mask}")
         commands.append("no shutdown")
         commands.append("exit")
