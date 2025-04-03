@@ -1,0 +1,2 @@
+Nom,Adresse réseau,Masque,CIDR,Première adresse,Dernière adresse,Broadcast,Nb Hotes
+sous_réseau1,192.168.0.0,255.255.255.0,/24,192.168.0.1,192.168.0.254,192.168.0.255,204
