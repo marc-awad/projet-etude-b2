@@ -31,6 +31,52 @@
           <input type="text" class="adress" id="inputcidr" placeholder="/24" />
         </div>
         <div class="inputligne">
+          <p>Position de la gateway dans le réseau :</p>
+          <select id="gateway_position" class="adress">
+            <option value="debut">Début du réseau</option>
+            <option value="fin">Fin du réseau</option>
+          </select>
+        </div>
+        <div class="inputligne">
+          <p>DNS Primaire :</p>
+          <input
+            type="text"
+            id="dns_primaire"
+            class="adress"
+            placeholder="Ex : 8.8.8.8"
+            oninput="formatInput(this)"
+          />
+        </div>
+        <div class="inputligne">
+          <p>DNS Secondaire :</p>
+          <input
+            type="text"
+            id="dns_secondaire"
+            class="adress"
+            placeholder="Ex : 8.8.4.4"
+            oninput="formatInput(this)"
+          />
+        </div>
+        <div class="inputligne">
+          <p>Nom de domaine :</p>
+          <input
+            type="text"
+            class="adress"
+            id="nom_domaine"
+            placeholder="Ex : mondomaine.local"
+          />
+        </div>
+        <div class="inputligne">
+          <p>Serveur NTP :</p>
+          <input
+            type="text"
+            id="serveur_ntp"
+            class="adress"
+            placeholder="Ex : 132.163.97.1"
+            oninput="formatInput(this)"
+          />
+        </div>
+        <div class="inputligne">
           <p>Nombre de sous-réseaux :</p>
           <input
             type="text"
