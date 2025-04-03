@@ -8,9 +8,9 @@
   --primary-color: #00e5ff;
   --primary-dark: #00b8d4;
   --primary-light: #18ffff;
-  --secondary-color: #00ff9d;
-  --secondary-dark: #00d884;
-  --accent-color: #d500f9;
+  --secondary-color: #00e5ff;
+  --secondary-dark: #00e5ff;
+  --accent-color: #00e5ff;
   
   /* Neutrals - Dark Theme */
   --bg-color: #0f1520;
@@ -24,7 +24,7 @@
   
   /* Status colors */
   --success-color: #00ffa3;
-  --warning-color: #ffab00;
+  --warning-color:#00e5ff;
   --error-color: #ff5252;
   
   /* Shadow variables */
@@ -36,7 +36,13 @@
   --glow-primary: 0 0 10px rgba(0, 229, 255, 0.5);
   --glow-secondary: 0 0 10px rgba(0, 255, 157, 0.5);
   --glow-accent: 0 0 10px rgba(213, 0, 249, 0.5);
-  
+
+  --gradient-start: #007bff;  /* Bleu éclatant */
+  --gradient-1: #00a2ff;     /* Bleu néon intense */
+  --gradient-2: #00c3ff;     /* Bleu turquoise */
+  --gradient-3: #5dfdff;     /* Cyan clair néon */
+  --gradient-4: #aafaff;     /* Bleu pastel lumineux */
+
   /* Spacing */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
@@ -48,6 +54,17 @@
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 * {
@@ -247,7 +264,9 @@ input {
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
-  box-shadow: var(--shadow-md), var(--glow-primary);
+  box-shadow: 0 0 4px var(--primary-color), /* Halo principal */
+              0 0 5px var(--primary-color), /* Effet néon doux */
+              0 0 2px rgba(0, 162, 255, 0.8); /* Glow intense */
   margin: 1.5rem auto 0;
   display: block;
   min-width: 140px;
@@ -255,6 +274,16 @@ input {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+/* Effet encore plus intense au survol */
+.mainbutton:hover {
+  box-shadow: 0 0 12px var(--primary-color),
+              0 0 30px var(--primary-color),
+              0 0 60px rgba(0, 162, 255, 1); /* Glow plus fort */
+  transform: scale(1.05); /* Légère mise en avant */
+}
+
+
 
 .mainbutton:hover {
   transform: translateY(-2px);
@@ -516,66 +545,42 @@ input {
       text-shadow: none !important;
     }
   }
-#actionButtons {
-  margin-top: 2rem;
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  padding-bottom: 2rem;
-  width: 100%;
-}
-
+/* Style pour le premier bouton avec plus de violet */
 #actionButtons .mainbutton {
-  padding: 0.75rem 1.25rem;
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  margin: 0 0.3rem;
+  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-1), var(--gradient-4), var(--gradient-1));
+  background-size: 300% 300%;
+  animation: gradientAnimation 6s ease infinite;
+  
+  /* Ombre néon fine et subtile */
+  box-shadow: 
+    0 0 2px var(--gradient-start), /* Halo discret */
+    0 0 4px var(--gradient-1), /* Glow léger */
+    0 0 6px rgba(138, 43, 226, 0.4); /* Effet néon atténué */
+  transition: box-shadow 0.2s ease-in-out;
 }
 
-#actionButtons .mainbutton:nth-child(1) {
-  background: linear-gradient(to right, var(--accent-color), #b000f2);
-  box-shadow: var(--shadow-md), var(--glow-accent);
+/* Légère intensification au survol */
+#actionButtons .mainbutton:hover {
+  box-shadow: 
+    0 0 6px var(--gradient-start),
+    0 0 12px var(--gradient-1),
+    0 0 18px rgba(138, 43, 226, 0.5);
+  transform: scale(1.03); /* Mise en avant subtile */
 }
 
-#actionButtons .mainbutton:nth-child(1):hover {
-  background: linear-gradient(to right, #b000f2, var(--accent-color));
-  box-shadow: var(--shadow-lg), 0 0 15px var(--accent-color);
-}
-
-#actionButtons .mainbutton:nth-child(2) {
-  background: linear-gradient(to right, var(--secondary-color), var(--secondary-dark));
-  box-shadow: var(--shadow-md), var(--glow-secondary);
-}
-
-#actionButtons .mainbutton:nth-child(2):hover {
-  background: linear-gradient(to right, var(--secondary-dark), var(--secondary-color));
-  box-shadow: var(--shadow-lg), 0 0 15px var(--secondary-color);
-}
-
-#actionButtons .mainbutton:nth-child(3) {
-  background: linear-gradient(to right, var(--warning-color), #e59c00);
-  box-shadow: var(--shadow-md), 0 0 10px rgba(255, 171, 0, 0.5);
-}
-
-#actionButtons .mainbutton:nth-child(3):hover {
-  background: linear-gradient(to right, #e59c00, var(--warning-color));
-  box-shadow: var(--shadow-lg), 0 0 15px rgba(255, 171, 0, 0.7);
-}
-
-/* Add button */
-
+/* Style pour le bouton d'ajout - correction pour s'assurer que le dégradé s'applique */
 #buttonadd {
-  background: linear-gradient(to right, #6366f1, #4f46e5);
-  box-shadow: var(--shadow-md), 0 0 10px rgba(99, 102, 241, 0.5);
+  background: linear-gradient(45deg, var(--gradient-3), var(--gradient-4), var(--gradient-start), var(--gradient-3));
+  background-size: 300% 300%;
+  animation: gradientAnimation 9s ease infinite;
+  box-shadow: var(--shadow-md), 0 0 10px rgba(123, 31, 162, 0.5);
   margin: 1.5rem auto;
 }
 
 #buttonadd:hover {
-  background: linear-gradient(to right, #4f46e5, #6366f1);
-  box-shadow: var(--shadow-lg), 0 0 15px rgba(99, 102, 241, 0.7);
+  box-shadow: var(--shadow-lg), 0 0 15px rgba(123, 31, 162, 0.7);
+  animation: gradientAnimation 4.5s ease infinite;
 }
 
 /* Responsiveness */

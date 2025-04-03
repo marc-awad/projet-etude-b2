@@ -807,11 +807,6 @@ envoyer.addEventListener("click", () => {
             downloadButton.classList.add("mainbutton")
             downloadButton.addEventListener("click", downloadPDF)
 
-            // Bouton pour imprimer
-            const printButton = document.createElement("button")
-            printButton.textContent = "Imprimer"
-            printButton.classList.add("mainbutton")
-
             // Bouton DHCP (nouveau)
             const dhcpButton = document.createElement("button")
             dhcpButton.textContent = "Script DHCP"
