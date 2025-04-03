@@ -15,6 +15,11 @@ let adress = document.getElementById("adress")
 let sous_reseaux = document.getElementById("sous_reseaux")
 let inputcidr = document.getElementById("inputcidr")
 let marge = document.getElementById("marge")
+let dns_primaire = document.getElementById("dns_primaire")
+let dns_secondaire = document.getElementById("dns_secondaire")
+let gateway_position = document.getElementById("gateway_position")
+let serveur_ntp = document.getElementById("serveur_ntp")
+let nom_domaine = document.getElementById("nom_domaine")
 
 //les divs
 let boxzone = document.getElementById("boxzone")
