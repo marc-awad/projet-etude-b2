@@ -466,12 +466,11 @@ input {
   padding: 2rem;
   margin-bottom: 1.5rem;
   transition: height var(--transition-normal);
-  display: none;
-  overflow-y: auto;
+  display: block; /* Changed from 'none' to 'block' */
+  overflow-y: scroll;
   max-height: 55vh;
   border: 1px solid var(--border-color);
-  position: relative; /* Ajouté pour le positionnement absolu du ::before */
-  overflow: hidden; /* Pour que le trait ne dépasse pas les coins arrondis */
+  position: relative;
 }
 
 #boxzone::before {
@@ -483,6 +482,7 @@ input {
   height: 3px;
   background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
   box-shadow: var(--glow-primary);
+  
 }
 
 #content {
