@@ -1,5 +1,5 @@
-import getpass
-from netmiko import ConnectHandler
+import serial
+import time
 import re
 
 def validate_ip(ip):
@@ -24,25 +24,40 @@ available_networks = [
         'masque': "255.255.255.0",
         'premiere_adresse': "192.168.0.1",
         'cidr': 24,
-        'nombre_machines': 255
+        'nombre_machines': 206
+    },
+    {
+        'nom': "sous_réseau2",
+        'adresse_reseau': "192.168.1.0",
+        'masque': "255.255.255.224",
+        'premiere_adresse': "192.168.1.1",
+        'cidr': 27,
+        'nombre_machines': 23
+    },
+    {
+        'nom': "sous_réseau3",
+        'adresse_reseau': "192.168.1.32",
+        'masque': "255.255.255.240",
+        'premiere_adresse': "192.168.1.33",
+        'cidr': 28,
+        'nombre_machines': 13
+    },
+    {
+        'nom': "sous_réseau4",
+        'adresse_reseau': "192.168.1.48",
+        'masque': "255.255.255.248",
+        'premiere_adresse': "192.168.1.49",
+        'cidr': 29,
+        'nombre_machines': 8
     },
 ]
 
-# Demander les informations de connexion
-print("=== Configuration de la connexion au routeur Cisco ===")
-host = get_valid_input("Adresse IP du routeur: ", validate_ip)
-username = input("Nom d'utilisateur: ")
-password = getpass.getpass("Mot de passe: ")
-secret = getpass.getpass("Enable secret: ")
+# Configuration de la connexion série
+print("=== Configuration de la connexion série au routeur Cisco ===")
+port_com = input("Port COM à utiliser (ex: COM3): ")
+baudrate = input("Débit en bauds (défaut: 9600): ") or "9600"
 
-device = {
-    'device_type': 'cisco_ios',
-    'host': host,
-    'username': username,
-    'password': password,
-    'secret': secret
-}
-
+# Afficher les réseaux disponibles
 print("\n=== Réseaux disponibles ===")
 for i, network in enumerate(available_networks):
     print(f"{i+1}. {network['nom']} - Réseau: {network['adresse_reseau']}/{network['cidr']} - Machines: {network['nombre_machines']}")
@@ -84,20 +99,50 @@ if not interfaces:
     exit()
 
 try:
-    print(f"\nConnexion à {host}...")
-    net_connect = ConnectHandler(**device)
-    net_connect.enable()
-    commands = ["configure terminal"]
+    print(f"\nOuverture du port série {port_com}...")
+    ser = serial.Serial(port_com, int(baudrate), timeout=1)
+    time.sleep(5) # Pause pour stabiliser la connexion
+
+    def send_command(command, wait_time=3):
+        print(f"Envoi: {command}")
+        ser.write((command + '\r\n').encode())
+        time.sleep(wait_time)
+        response = ser.read(ser.inWaiting()).decode()
+        # Afficher la réponse
+        if response:
+            print(f"Réponse: {response}")
+        else:
+            print("Aucune réponse reçue.")
+        return response
+
+    # Entrer en mode enable
+    send_command("enable")
+    password = input("Mot de passe enable (appuyer sur Entrée si aucun): ")
+    if password:
+        send_command(password)
+
+    # Entrer en mode configuration
+    send_command("configure terminal")
+
+    # Configurer chaque interface
     for name, ip, mask in interfaces:
-        commands.append(f"interface {name}")
-        commands.append(f"ip address {ip} {mask}")
-        commands.append("no shutdown")
-        commands.append("exit")
-    commands.extend(["end", "write memory"])
-    print("\nApplication de la configuration...")
-    output = net_connect.send_config_set(commands)
-    print(output)
-    net_connect.disconnect()
+        print(f"\nConfiguration de l'interface {name}...")
+        send_command(f"interface {name}")
+        send_command(f"ip address {ip} {mask}")
+        send_command("no shutdown")
+        send_command("exit")
+
+    # Sauvegarder la configuration et quitter
+    send_command("end")
+    send_command("write memory")
+
+    print("\nFermeture de la connexion série...")
+    ser.close()
     print("Configuration terminée avec succès!")
+
 except Exception as e:
-    print("Erreur:", e)
+    print(f"Erreur: {e}")
+    try:
+        ser.close()
+    except:
+        pass

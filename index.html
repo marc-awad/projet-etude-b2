@@ -6,14 +6,14 @@
     <title>Découpage VLSM</title>
     <link rel="icon" type="image/png" href="src/img/logo_reseau.png" />
     <link rel="stylesheet" href="src/vlsm.css" />
-   
   </head>
 
   <body id="body">
     <h1>NetSlicer</h1>
     <h3>
-      Ce site génère et classe automatiquement les sous-réseaux VLSM en fonction des valeurs saisies, 
-      optimisant ainsi la gestion de votre réseau et produisant les scripts correspondants.
+      Ce site génère et classe automatiquement les sous-réseaux VLSM en fonction
+      des valeurs saisies, optimisant ainsi la gestion de votre réseau et
+      produisant les scripts correspondants.
     </h3>
     <div id="boxadresses">
       <div id="inputs">
@@ -50,7 +50,7 @@
             maxlength="3"
           />
         </div>
-        
+
         <!-- Bouton accordéon pour les informations supplémentaires -->
         <button class="accordion">Données complémentaire au scripts</button>
         <div class="panel">
@@ -101,7 +101,6 @@
             />
           </div>
         </div>
-
       </div>
       <button id="valider1" class="mainbutton">Valider</button>
     </div>
@@ -114,78 +113,78 @@
     <script>
       function correction(adresse) {
         for (let i = 3; i > 0; i--) {
-            if (adresse[i] > 255) {
-                adresse[i - 1] = parseInt(adresse[i - 1]) + 1
-                adresse[i] = parseInt(adresse[i]) - 256
-            } else if (adresse[i] < 0) {
-                adresse[i - 1] = parseInt(adresse[i - 1]) - 1
-                adresse[i] = parseInt(adresse[i]) + 256
-            }
+          if (adresse[i] > 255) {
+            adresse[i - 1] = parseInt(adresse[i - 1]) + 1
+            adresse[i] = parseInt(adresse[i]) - 256
+          } else if (adresse[i] < 0) {
+            adresse[i - 1] = parseInt(adresse[i - 1]) - 1
+            adresse[i] = parseInt(adresse[i]) + 256
+          }
         }
         return adresse
       }
-      
+
       function formatInput(input) {
-          // Supprimer tous les caractères non numériques et non points
-          let value = input.value.replace(/[^\d.]/g, "")
+        // Supprimer tous les caractères non numériques et non points
+        let value = input.value.replace(/[^\d.]/g, "")
 
-          // Supprimer les points excédentaires
-          value = value.replace(/\.{2,}/g, ".")
+        // Supprimer les points excédentaires
+        value = value.replace(/\.{2,}/g, ".")
 
-          // Insérer un point après chaque groupe de trois chiffres
-          value = value.replace(/(\d{3})(?=\d)/g, "$1.")
+        // Insérer un point après chaque groupe de trois chiffres
+        value = value.replace(/(\d{3})(?=\d)/g, "$1.")
 
-          // Limiter à quatre groupes de trois chiffres
-          let groups = value.split(".")
-          groups = groups.slice(0, 4)
+        // Limiter à quatre groupes de trois chiffres
+        let groups = value.split(".")
+        groups = groups.slice(0, 4)
 
-          if (groups.length === 4 && groups[3].charAt(0) === "0") {
-              groups[3] = "0"
-          }
-
-          // Ajouter un point après un '0' si c'est le premier caractère du groupe
-          value = groups.join(".").replace(/(?<=^|\.)0(?=\d)/g, "0.")
-
-          // Limiter à quinze caractères (quatre groupes de trois chiffres et trois points)
-          value = value.substring(0, 15)
-
-          // Si la longueur de la valeur dépasse 12 (quatre groupes de trois chiffres)
-          // et si le dernier caractère est un point, supprimez-le
-          if (value.length > 12 && value.charAt(value.length - 1) === ".") {
-              value = value.substring(0, value.length - 1)
-          }
-
-          // Corriger si une valeur dépasse 255 ou devient inférieure à 0
-          let group = value.split(".")
-          for (let i = 0; i < group.length; i++) {
-              if (group[i] > 255) {
-                  group[i] = "255"
-              }
-              if (group[i] < 0) {
-                  group[i] = "0"
-              }
-          }
-
-          // Mettre à jour la valeur de l'input avec les groupes corrigés
-          input.value = group.join(".")
-      }
-      
-      // Script pour l'accordéon
-      document.addEventListener('DOMContentLoaded', function() {
-        var acc = document.getElementsByClassName("accordion");
-        
-        for (var i = 0; i < acc.length; i++) {
-          acc[i].addEventListener("click", function() {
-            this.classList.toggle("active");
-            var panel = this.nextElementSibling;
-            if (panel.style.maxHeight) {
-              panel.style.maxHeight = null;
-            } else {
-              panel.style.maxHeight = panel.scrollHeight + "px";
-            }
-          });
+        if (groups.length === 4 && groups[3].charAt(0) === "0") {
+          groups[3] = "0"
         }
-      });
+
+        // Ajouter un point après un '0' si c'est le premier caractère du groupe
+        value = groups.join(".").replace(/(?<=^|\.)0(?=\d)/g, "0.")
+
+        // Limiter à quinze caractères (quatre groupes de trois chiffres et trois points)
+        value = value.substring(0, 15)
+
+        // Si la longueur de la valeur dépasse 12 (quatre groupes de trois chiffres)
+        // et si le dernier caractère est un point, supprimez-le
+        if (value.length > 12 && value.charAt(value.length - 1) === ".") {
+          value = value.substring(0, value.length - 1)
+        }
+
+        // Corriger si une valeur dépasse 255 ou devient inférieure à 0
+        let group = value.split(".")
+        for (let i = 0; i < group.length; i++) {
+          if (group[i] > 255) {
+            group[i] = "255"
+          }
+          if (group[i] < 0) {
+            group[i] = "0"
+          }
+        }
+
+        // Mettre à jour la valeur de l'input avec les groupes corrigés
+        input.value = group.join(".")
+      }
+
+      // Script pour l'accordéon
+      document.addEventListener("DOMContentLoaded", function () {
+        var acc = document.getElementsByClassName("accordion")
+
+        for (var i = 0; i < acc.length; i++) {
+          acc[i].addEventListener("click", function () {
+            this.classList.toggle("active")
+            var panel = this.nextElementSibling
+            if (panel.style.maxHeight) {
+              panel.style.maxHeight = null
+            } else {
+              panel.style.maxHeight = panel.scrollHeight + "px"
+            }
+          })
+        }
+      })
     </script>
     <script type="module" src="src/vlsm.js"></script>
   </body>
