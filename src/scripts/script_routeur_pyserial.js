@@ -1,6 +1,4 @@
-export function generateCiscoSerialConfigScript(
-  resultsArray,
-) {
+export function generateCiscoSerialConfigScript(resultsArray) {
   // Créer l'en-tête du script Python
   let pythonCode = `import serial
 import time
@@ -92,14 +90,18 @@ if not interfaces:
 try:
     print(f"\\nOuverture du port série {port_com}...")
     ser = serial.Serial(port_com, int(baudrate), timeout=1)
-    time.sleep(2) # Pause pour stabiliser la connexion
+    time.sleep(5) # Pause pour stabiliser la connexion
 
-    def send_command(command, wait_time=1):
+    def send_command(command, wait_time=3):
         print(f"Envoi: {command}")
         ser.write((command + '\\r\\n').encode())
         time.sleep(wait_time)
         response = ser.read(ser.inWaiting()).decode()
-        print(f"Réponse: {response}")
+        # Afficher la réponse
+        if response:
+            print(f"Réponse: {response}")
+        else:
+            print("Aucune réponse reçue.")
         return response
 
     # Entrer en mode enable
