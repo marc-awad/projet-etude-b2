@@ -5,23 +5,23 @@
  * @returns {string} - Le script PowerShell généré
  */
 export function generateDhcpScript(subnetsArray, configOptions = {}) {
-    // Valeurs par défaut
-    const options = {
-        defaultGateway: configOptions.defaultGateway || "192.168.100.1",
-        scopeStartOffset: configOptions.scopeStartOffset || 10, // Décalage pour le début de plage
-        scopeEndOffset: configOptions.scopeEndOffset || 5,      // Décalage pour la fin de plage
-        includeDnsServer: configOptions.includeDnsServer || false,
-        dnsServerIP: configOptions.dnsServerIP || "8.8.8.8"
-    };
+  // Valeurs par défaut
+  const options = {
+    defaultGateway: configOptions.defaultGateway || "192.168.100.1",
+    scopeStartOffset: configOptions.scopeStartOffset || 10, // Décalage pour le début de plage
+    scopeEndOffset: configOptions.scopeEndOffset || 5, // Décalage pour la fin de plage
+    includeDnsServer: configOptions.includeDnsServer || false,
+    dnsServerIP: configOptions.dnsServerIP || "8.8.8.8",
+  }
 
-    // Filtrer les sous-réseaux valides (ceux qui n'ont pas de problème de manque d'adresses)
-    const validSubnets = subnetsArray.filter(subnet => !subnet.pasDeReseau);
+  // Filtrer les sous-réseaux valides (ceux qui n'ont pas de problème de manque d'adresses)
+  const validSubnets = subnetsArray.filter((subnet) => !subnet.pasDeReseau)
 
-    if (validSubnets.length === 0) {
-        return "# Aucun sous-réseau valide trouvé pour générer un script DHCP";
-    }
+  if (validSubnets.length === 0) {
+    return "# Aucun sous-réseau valide trouvé pour générer un script DHCP"
+  }
 
-    let powershellScript = `# Script PowerShell pour configurer uniquement les étendues DHCP
+  let powershellScript = `# Script PowerShell pour configurer uniquement les étendues DHCP
 # Généré automatiquement le ${new Date().toLocaleString()}
 # Assurez-vous d'exécuter ce script en tant qu'administrateur sur le serveur cible
 
@@ -43,7 +43,7 @@ Write-Host "Configuration des étendues DHCP - Paramètres prédéfinis" -Foregr
 Write-Host "------------------------------------------------------" -ForegroundColor Cyan
 
 $DefaultGateway = "${options.defaultGateway}"
-${options.includeDnsServer ? `$DNSServer = "${options.dnsServerIP}"` : ''}
+${options.includeDnsServer ? `$DNSServer = "${options.dnsServerIP}"` : ""}
 
 # Vérification que le service DHCP est disponible
 # Installation du rôle DHCP et des outils d'administration
@@ -72,25 +72,28 @@ try {
 }
 
 # Configuration des étendues DHCP
-Write-Host "\\nConfiguration des étendues DHCP..." -ForegroundColor Cyan\n\n`;
+Write-Host "\\nConfiguration des étendues DHCP..." -ForegroundColor Cyan\n\n`
 
-    // Ajouter chaque étendue DHCP pour les sous-réseaux valides
-    validSubnets.forEach((subnet, index) => {
-        const scopeID = subnet.adresseReseau.join('.');
-        const subnetMask = subnet.masque.join('.');
-        const scopeName = subnet.nom;
-        
-        // Calculer les plages d'adresses (début et fin)
-        let startRange = [...subnet.premièreAdresse];
-        let endRange = [...subnet.dernièreAdresse];
-        
-        // Appliquer les décalages si possible
-        if (parseInt(startRange[3]) + options.scopeStartOffset < parseInt(endRange[3]) - options.scopeEndOffset) {
-            startRange[3] = parseInt(startRange[3]) + options.scopeStartOffset;
-            endRange[3] = parseInt(endRange[3]) - options.scopeEndOffset;
-        }
-        
-        powershellScript += `# Configuration de l'étendue ${index + 1}: ${scopeName}
+  // Ajouter chaque étendue DHCP pour les sous-réseaux valides
+  validSubnets.forEach((subnet, index) => {
+    const scopeID = subnet.adresseReseau.join(".")
+    const subnetMask = subnet.masque.join(".")
+    const scopeName = subnet.nom
+
+    // Calculer les plages d'adresses (début et fin)
+    let startRange = [...subnet.premièreAdresse]
+    let endRange = [...subnet.dernièreAdresse]
+
+    // Appliquer les décalages si possible
+    if (
+      parseInt(startRange[3]) + options.scopeStartOffset <
+      parseInt(endRange[3]) - options.scopeEndOffset
+    ) {
+      startRange[3] = parseInt(startRange[3]) + options.scopeStartOffset
+      endRange[3] = parseInt(endRange[3]) - options.scopeEndOffset
+    }
+
+    powershellScript += `# Configuration de l'étendue ${index + 1}: ${scopeName}
 try {
     # Vérifier si l'étendue existe déjà
     $existingScope = Get-DhcpServerv4Scope -ScopeId ${scopeID} -ErrorAction SilentlyContinue
@@ -100,33 +103,43 @@ try {
     }
     
     # Création de l'étendue
-    Add-DhcpServerv4Scope -Name "${scopeName}" -StartRange ${startRange.join('.')} -EndRange ${endRange.join('.')} -SubnetMask ${subnetMask} -State Active -ErrorAction Stop
+    Add-DhcpServerv4Scope -Name "${scopeName}" -StartRange ${startRange.join(
+      "."
+    )} -EndRange ${endRange.join(
+      "."
+    )} -SubnetMask ${subnetMask} -State Active -ErrorAction Stop
     Write-Host "Étendue DHCP ${scopeName} créée avec succès." -ForegroundColor Green
     
     # Configuration des options DHCP
-    Set-DhcpServerv4OptionValue -ScopeId ${scopeID} -Router $DefaultGateway`;
-        
-        // Ajouter les serveurs DNS si demandé
-        if (options.includeDnsServer) {
-            powershellScript += ` -DnsServer $DNSServer`;
-        }
-        
-        powershellScript += ` -ErrorAction Stop
+    Set-DhcpServerv4OptionValue -ScopeId ${scopeID} -Router $DefaultGateway`
+
+    // Ajouter les serveurs DNS si demandé
+    if (options.includeDnsServer) {
+      powershellScript += ` -DnsServer $DNSServer`
+    }
+
+    powershellScript += ` -ErrorAction Stop
     Write-Host "Options DHCP pour ${scopeName} configurées." -ForegroundColor Green
 } catch {
     Write-Host "Erreur lors de la configuration de l'étendue DHCP ${scopeName}: $_" -ForegroundColor Red
 }
 
-`;
-    });
+`
+  })
 
-    // Ajouter la fin du script
-    powershellScript += `# Affichage des informations de configuration
+  // Ajouter la fin du script
+  powershellScript += `# Affichage des informations de configuration
 Write-Host "\\nRécapitulatif des étendues DHCP:" -ForegroundColor Cyan
 Write-Host "-------------------------------------------" -ForegroundColor Cyan
 Write-Host "Passerelle par défaut : $DefaultGateway" -ForegroundColor White
-${options.includeDnsServer ? 'Write-Host "Serveur DNS : $DNSServer" -ForegroundColor White' : ''}
-Write-Host "Nombre d'étendues configurées : ${validSubnets.length}" -ForegroundColor White
+${
+  options.includeDnsServer
+    ? 'Write-Host "Serveur DNS : $DNSServer" -ForegroundColor White'
+    : ""
+}
+Write-Host "Nombre d'étendues configurées : ${
+    validSubnets.length
+  }" -ForegroundColor White
 
 # Liste des étendues configurées
 Get-DhcpServerv4Scope | Format-Table -Property ScopeId, Name, SubnetMask, StartRange, EndRange, State -AutoSize
@@ -134,11 +147,10 @@ Get-DhcpServerv4Scope | Format-Table -Property ScopeId, Name, SubnetMask, StartR
 Write-Host "-------------------------------------------" -ForegroundColor Cyan
 Write-Host "\\nLa configuration des étendues DHCP est terminée." -ForegroundColor Green
 shutdown /r /t 10
-`;
+`
 
-    return powershellScript;
+  return powershellScript
 }
-
 
 /**
  * Sauvegarde le script PowerShell généré dans un fichier
@@ -146,23 +158,23 @@ shutdown /r /t 10
  * @param {string} filename - Nom du fichier de sortie (par défaut: dhcp-scopes.ps1)
  */
 export function saveScriptToFile(script, filename = "dhcp-scopes.ps1") {
-    try {
-        // Dans un environnement de navigateur, créer un blob et proposer le téléchargement
-        const blob = new Blob([script], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        
-        URL.revokeObjectURL(url);
-        console.log(`Script téléchargé sous ${filename}`);
-        return true;
-    } catch (error) {
-        console.error("Erreur lors de la sauvegarde du script:", error);
-        return false;
-    }
+  try {
+    // Dans un environnement de navigateur, créer un blob et proposer le téléchargement
+    const blob = new Blob([script], { type: "text/plain" })
+    const url = URL.createObjectURL(blob)
+
+    const a = document.createElement("a")
+    a.href = url
+    a.download = filename
+    a.click()
+
+    URL.revokeObjectURL(url)
+    console.log(`Script téléchargé sous ${filename}`)
+    return true
+  } catch (error) {
+    console.error("Erreur lors de la sauvegarde du script:", error)
+    return false
+  }
 }
 
 /**
@@ -173,29 +185,34 @@ export function saveScriptToFile(script, filename = "dhcp-scopes.ps1") {
  * @param {string} filename - Nom du fichier de sortie (si saveToFile est true)
  * @returns {string} - Le script PowerShell généré
  */
-export function generateDhcpScriptFromCalculator(resultsArray, options = {}, saveToFile = false, filename = "dhcp-scopes.ps1") {
-    // Vérifier si resultsArray est valide
-    if (!Array.isArray(resultsArray) || resultsArray.length === 0) {
-        console.error("Erreur: résultats de sous-réseaux invalides ou vides");
-        return "# Erreur: aucun résultat de sous-réseau valide fourni";
-    }
-    
-    // Générer le script
-    const script = generateDhcpScript(resultsArray, options);
-    
-    // Sauvegarder dans un fichier si demandé
-    if (saveToFile) {
-        saveScriptToFile(script, filename);
-    }
-    
-    return script;
+export function generateDhcpScriptFromCalculator(
+  resultsArray,
+  options = {},
+  saveToFile = false,
+  filename = "dhcp-scopes.ps1"
+) {
+  // Vérifier si resultsArray est valide
+  if (!Array.isArray(resultsArray) || resultsArray.length === 0) {
+    console.error("Erreur: résultats de sous-réseaux invalides ou vides")
+    return "# Erreur: aucun résultat de sous-réseau valide fourni"
+  }
+
+  // Générer le script
+  const script = generateDhcpScript(resultsArray, options)
+
+  // Sauvegarder dans un fichier si demandé
+  if (saveToFile) {
+    saveScriptToFile(script, filename)
+  }
+
+  return script
 }
 
 // Exporter les fonctions pour les rendre utilisables depuis d'autres fichiers
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        generateDhcpScript,
-        generateDhcpScriptFromCalculator,
-        saveScriptToFile
-    };
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    generateDhcpScript,
+    generateDhcpScriptFromCalculator,
+    saveScriptToFile,
+  }
 }
