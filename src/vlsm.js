@@ -766,7 +766,43 @@ envoyer.addEventListener("click", () => {
                 }, 500)
             }
         }
-
+        function downloadCSV() {
+            // Création du contenu CSV
+            const csvContent = "data:text/csv;charset=utf-8,"
+                + "Nom,Adresse réseau,Masque,CIDR,Première adresse,Dernière adresse,Broadcast,Nb Hotes\n"
+                + resultsArray.map(result => {
+                    if (!result.pasDeReseau) {
+                        return [
+                            result.nom,
+                            result.adresseReseau.join("."),
+                            result.masque.join("."),
+                            "/" + result.cidr,
+                            result.premièreAdresse.join("."),
+                            result.dernièreAdresse.join("."),
+                            result.broadcast.join("."),
+                            result.nombreMachines - 2
+                        ].join(",")
+                    }
+                    return null
+                }).filter(Boolean).join("\n");
+            
+            // Encodage des caractères spéciaux pour l'URL
+            const encodedUri = encodeURI(csvContent);
+            
+            // Création d'un lien temporaire pour déclencher le téléchargement
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "resultats_reseaux.csv");
+            
+            // Ajout du lien au document
+            document.body.appendChild(link);
+            
+            // Déclenchement du téléchargement
+            link.click();
+            
+            // Suppression du lien temporaire
+            document.body.removeChild(link);
+        }
         // Modify the showTableView function to have dark neon styling for error messages
         function showTableView() {
             // Vider le contenu actuel
@@ -925,6 +961,11 @@ envoyer.addEventListener("click", () => {
             downloadButton.textContent = "Télécharger PDF"
             downloadButton.classList.add("mainbutton")
             downloadButton.addEventListener("click", downloadPDF)
+            // bouton pour telecharger un fichier csv
+            const csvButton = document.createElement("button")
+            csvButton.textContent = "Télécharger CSV"
+            csvButton.classList.add("mainbutton")
+            csvButton.addEventListener("click", downloadCSV)
 
             // Bouton DHCP (nouveau)
             const dhcpButton = document.createElement("button")
@@ -952,6 +993,7 @@ envoyer.addEventListener("click", () => {
 
             // Ajouter les boutons au conteneur
             buttonContainer.appendChild(downloadButton)
+            buttonContainer.appendChild(csvButton)
             buttonContainer.appendChild(dhcpButton)
             buttonContainer.appendChild(routeurButton)
             buttonContainer.appendChild(routeurButton2)
