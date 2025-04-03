@@ -47,7 +47,62 @@ let resultsArray = []
 
 // fonction qui permet de corriger une adresse
 //si une valeur dépasse 255 ou devient inferieur à 0
+function correction(adresse) {
+  for (let i = 3; i > 0; i--) {
+    if (adresse[i] > 255) {
+      adresse[i - 1] = parseInt(adresse[i - 1]) + 1
+      adresse[i] = parseInt(adresse[i]) - 256
+    } else if (adresse[i] < 0) {
+      adresse[i - 1] = parseInt(adresse[i - 1]) - 1
+      adresse[i] = parseInt(adresse[i]) + 256
+    }
+  }
+  return adresse
+}
+function formatInput(input) {
+  // Supprimer tous les caractères non numériques et non points
+  let value = input.value.replace(/[^\d.]/g, "")
 
+  // Supprimer les points excédentaires
+  value = value.replace(/\.{2,}/g, ".")
+
+  // Insérer un point après chaque groupe de trois chiffres
+  value = value.replace(/(\d{3})(?=\d)/g, "$1.")
+
+  // Limiter à quatre groupes de trois chiffres
+  let groups = value.split(".")
+  groups = groups.slice(0, 4)
+
+  if (groups.length === 4 && groups[3].charAt(0) === "0") {
+    groups[3] = "0"
+  }
+
+  // Ajouter un point après un '0' si c'est le premier caractère du groupe
+  value = groups.join(".").replace(/(?<=^|\.)0(?=\d)/g, "0.")
+
+  // Limiter à quinze caractères (quatre groupes de trois chiffres et trois points)
+  value = value.substring(0, 15)
+
+  // Si la longueur de la valeur dépasse 12 (quatre groupes de trois chiffres)
+  // et si le dernier caractère est un point, supprimez-le
+  if (value.length > 12 && value.charAt(value.length - 1) === ".") {
+    value = value.substring(0, value.length - 1)
+  }
+
+  // Corriger si une valeur dépasse 255 ou devient inférieure à 0
+  let group = value.split(".")
+  for (let i = 0; i < group.length; i++) {
+    if (group[i] > 255) {
+      group[i] = "255"
+    }
+    if (group[i] < 0) {
+      group[i] = "0"
+    }
+  }
+
+  // Mettre à jour la valeur de l'input avec les groupes corrigés
+  input.value = group.join(".")
+}
 
 inputcidr.value = "/"
 inputcidr.addEventListener("input", () => {
@@ -755,17 +810,17 @@ envoyer.addEventListener("click", () => {
                 if (!result.pasDeReseau) {
                     const row = document.createElement("tr")
 
-                    // Ajouter les cellules
-                    const cells = [
-                        result.nom,
-                        result.adresseReseau.join("."),
-                        result.masque.join("."),
-                        "/" + result.cidr,
-                        result.premièreAdresse.join("."),
-                        result.dernièreAdresse.join("."),
-                        result.broadcast.join("."),
-                        result.nombreMachines - 2,
-                    ]
+          // Ajouter les cellules
+          const cells = [
+            result.nom,
+            result.adresseReseau.join("."),
+            result.masque.join("."),
+            "/" + result.cidr,
+            result.premièreAdresse.join("."),
+            result.dernièreAdresse.join("."),
+            result.broadcast.join("."),
+            result.nombreMachines - 2 ,
+          ]
 
                     cells.forEach((cellText) => {
                         const td = document.createElement("td")
@@ -780,9 +835,8 @@ envoyer.addEventListener("click", () => {
             table.appendChild(tbody)
             boxzone.appendChild(table)
 
-            // Ne pas ajouter le bouton retour puisque c'est la vue par défaut maintenant
-        }
-
+      // Ne pas ajouter le bouton retour puisque c'est la vue par défaut maintenant
+    }
 
         // Fonction pour créer les boutons d'action
         function createActionButtons() {
@@ -831,11 +885,11 @@ envoyer.addEventListener("click", () => {
                 saveScriptToFile(pythonScriptConsole, "config-routeur-console.py")
             })
 
-            // Ajouter les boutons au conteneur
-            buttonContainer.appendChild(downloadButton)
-            buttonContainer.appendChild(dhcpButton)
-            buttonContainer.appendChild(routeurButton)
-            buttonContainer.appendChild(routeurButton2)
+      // Ajouter les boutons au conteneur
+      buttonContainer.appendChild(downloadButton)
+      buttonContainer.appendChild(dhcpButton)
+      buttonContainer.appendChild(routeurButton)
+     buttonContainer.appendChild(routeurButton2)
 
             // Ajouter le conteneur à la fin du body
             body.appendChild(buttonContainer)
