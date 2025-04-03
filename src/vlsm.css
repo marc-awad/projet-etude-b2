@@ -254,8 +254,13 @@ input {
 
 /* Buttons */
 
+/* Modified button styles to ensure consistent blue gradient */
+
+/* Base button style with consistent blue gradient */
 .mainbutton {
-  background: linear-gradient(to right, var(--primary-color), var(--primary-dark));
+  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-1), var(--gradient-3), var(--gradient-1));
+  background-size: 300% 300%;
+  animation: gradientAnimation 6s ease infinite;
   color: #0f1520;
   border: none;
   border-radius: 8px;
@@ -275,20 +280,13 @@ input {
   letter-spacing: 0.5px;
 }
 
-/* Effet encore plus intense au survol */
+/* Consistent hover effect for all buttons */
 .mainbutton:hover {
   box-shadow: 0 0 12px var(--primary-color),
               0 0 30px var(--primary-color),
               0 0 60px rgba(0, 162, 255, 1); /* Glow plus fort */
   transform: scale(1.05); /* Légère mise en avant */
-}
-
-
-
-.mainbutton:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg), 0 0 15px var(--primary-color);
-  background: linear-gradient(to right, var(--primary-light), var(--primary-color));
+  background-position: 100% 50%;
 }
 
 .mainbutton:active {
@@ -297,17 +295,56 @@ input {
   opacity: 0.9;
 }
 
+/* Ensure #envoyer has the same gradient but maintains its display property */
 #envoyer {
-  display: none;
-  background: linear-gradient(to right, var(--secondary-color), var(--secondary-dark));
-  box-shadow: var(--shadow-md), var(--glow-secondary);
+  display: none; /* Keeping the original display property */
+  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-1), var(--gradient-3), var(--gradient-1));
+  background-size: 300% 300%;
+  animation: gradientAnimation 6s ease infinite;
+  box-shadow: var(--shadow-md), 0 0 5px var(--primary-color);
 }
 
 #envoyer:hover {
-  box-shadow: var(--shadow-lg), 0 0 15px var(--secondary-color);
+  box-shadow: 0 0 12px var(--primary-color),
+              0 0 30px var(--primary-color),
+              0 0 60px rgba(0, 162, 255, 1);
+  transform: scale(1.05);
 }
 
-/* Content Area */
+/* #buttonadd with the same gradient */
+#buttonadd {
+  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-1), var(--gradient-3), var(--gradient-1));
+  background-size: 300% 300%;
+  animation: gradientAnimation 6s ease infinite;
+  box-shadow: var(--shadow-md), 0 0 5px var(--primary-color);
+  margin: 1.5rem auto;
+}
+
+#buttonadd:hover {
+  box-shadow: 0 0 12px var(--primary-color),
+              0 0 30px var(--primary-color),
+              0 0 60px rgba(0, 162, 255, 1);
+  transform: scale(1.05);
+  animation: gradientAnimation 4.5s ease infinite;
+}
+
+/* Ensuring action buttons also have the same style */
+#actionButtons .mainbutton {
+  margin: 0 0.3rem;
+  background: linear-gradient(45deg, var(--gradient-start), var(--gradient-1), var(--gradient-3), var(--gradient-1));
+  background-size: 300% 300%;
+  animation: gradientAnimation 6s ease infinite;
+  box-shadow: 0 0 4px var(--primary-color),
+              0 0 5px var(--primary-color),
+              0 0 2px rgba(0, 162, 255, 0.8);
+}
+
+#actionButtons .mainbutton:hover {
+  box-shadow: 0 0 12px var(--primary-color),
+              0 0 30px var(--primary-color),
+              0 0 60px rgba(0, 162, 255, 1);
+  transform: scale(1.05);
+}
 
 #para {
   width: 100%;
