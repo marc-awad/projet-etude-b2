@@ -119,7 +119,7 @@ function calculateMaxHosts() {
             maxHostsDisplay.style.fontSize = "14px";
             inputcidr.parentNode.appendChild(maxHostsDisplay);
         }
-        maxHostsDisplay.textContent = `Nombre maximum d'hôtes disponibles: ${maxHosts.toLocaleString()}`;
+        maxHostsDisplay.textContent = `Hôtes disponibles: ${maxHosts.toLocaleString()}`;
     }
 }
 inputcidr.addEventListener("change", calculateMaxHosts);
