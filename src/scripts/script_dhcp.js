@@ -3,13 +3,16 @@
  * @param {Array} subnetsArray - Tableau d'objets contenant les informations des sous-réseaux
  * @param {Object} configOptions - Options supplémentaires pour la configuration des étendues DHCP
  * @returns {string} - Le script PowerShell généré
- */export function generateDhcpScript(subnetsArray, configOptions = {}) {
+ */ export function generateDhcpScript(subnetsArray, configOptions = {}) {
   // Valeurs par défaut
   const options = {
     defaultGateway: configOptions.defaultGateway || "192.168.100.1",
     scopeStartOffset: configOptions.scopeStartOffset || 10, // Décalage pour le début de plage
     scopeEndOffset: configOptions.scopeEndOffset || 5, // Décalage pour la fin de plage
-    includeDnsServer: configOptions.includeDnsServer !== undefined ? configOptions.includeDnsServer : true,
+    includeDnsServer:
+      configOptions.includeDnsServer !== undefined
+        ? configOptions.includeDnsServer
+        : true,
     dnsServerPrimary: configOptions.dnsServerPrimary || "8.8.8.8",
     dnsServerSecondary: configOptions.dnsServerSecondary || "",
     gatewayPosition: configOptions.gatewayPosition || "fin", // Position de la passerelle (debut, fin)
@@ -47,7 +50,11 @@ Write-Host "------------------------------------------------------" -ForegroundC
 
 $DefaultGateway = "${options.defaultGateway}"
 ${options.dnsServerPrimary ? `$DNSPrimary = "${options.dnsServerPrimary}"` : ""}
-${options.dnsServerSecondary ? `$DNSSecondary = "${options.dnsServerSecondary}"` : ""}
+${
+  options.dnsServerSecondary
+    ? `$DNSSecondary = "${options.dnsServerSecondary}"`
+    : ""
+}
 ${options.ntpServer ? `$NTPServer = "${options.ntpServer}"` : ""}
 ${options.domainName ? `$DomainName = "${options.domainName}"` : ""}
 $GatewayPosition = "${options.gatewayPosition}"
@@ -107,9 +114,13 @@ Write-Host "\nConfiguration des étendues DHCP..." -ForegroundColor Cyan\n\n`
     } else {
       // Fallback vers les anciennes méthodes de détermination de la passerelle
       if (options.gatewayPosition === "debut") {
-        gatewayScript = `$Gateway${index + 1} = "${subnet.premièreAdresse.join(".")}"`
+        gatewayScript = `$Gateway${index + 1} = "${subnet.premièreAdresse.join(
+          "."
+        )}"`
       } else if (options.gatewayPosition === "fin") {
-        gatewayScript = `$Gateway${index + 1} = "${subnet.dernièreAdresse.join(".")}"`
+        gatewayScript = `$Gateway${index + 1} = "${subnet.dernièreAdresse.join(
+          "."
+        )}"`
       } else {
         gatewayScript = `$Gateway${index + 1} = $DefaultGateway`
       }
@@ -134,7 +145,9 @@ try {
     Write-Host "Étendue DHCP ${scopeName} créée avec succès." -ForegroundColor Green
     
     # Configuration des options DHCP
-    Set-DhcpServerv4OptionValue -ScopeId ${scopeID} -Router $Gateway${index + 1}`
+    Set-DhcpServerv4OptionValue -ScopeId ${scopeID} -Router $Gateway${
+      index + 1
+    }`
 
     // Ajouter les serveurs DNS si disponibles
     if (options.dnsServerPrimary) {
@@ -243,7 +256,7 @@ export function saveScriptToFile(script, filename = "dhcp-scopes.ps1") {
  * @param {boolean} saveToFile - Si true, sauvegarde le script dans un fichier
  * @param {string} filename - Nom du fichier de sortie (si saveToFile est true)
  * @returns {string} - Le script PowerShell généré
-*/
+ */
 // Exporter les fonctions pour les rendre utilisables depuis d'autres fichiers
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
