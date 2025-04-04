@@ -24,31 +24,15 @@ available_networks = [
         'masque': "255.255.255.0",
         'premiere_adresse': "192.168.0.1",
         'cidr': 24,
-        'nombre_machines': 206
+        'nombre_machines': 204
     },
     {
         'nom': "sous_réseau2",
         'adresse_reseau': "192.168.1.0",
-        'masque': "255.255.255.224",
-        'premiere_adresse': "192.168.1.1",
-        'cidr': 27,
-        'nombre_machines': 23
-    },
-    {
-        'nom': "sous_réseau3",
-        'adresse_reseau': "192.168.1.32",
         'masque': "255.255.255.240",
-        'premiere_adresse': "192.168.1.33",
+        'premiere_adresse': "192.168.1.1",
         'cidr': 28,
         'nombre_machines': 13
-    },
-    {
-        'nom': "sous_réseau4",
-        'adresse_reseau': "192.168.1.48",
-        'masque': "255.255.255.248",
-        'premiere_adresse': "192.168.1.49",
-        'cidr': 29,
-        'nombre_machines': 8
     },
 ]
 
@@ -102,6 +86,10 @@ try:
     print(f"\nOuverture du port série {port_com}...")
     ser = serial.Serial(port_com, int(baudrate), timeout=1)
     time.sleep(5) # Pause pour stabiliser la connexion
+    # Envoyer une ligne vide pour réveiller le routeur
+    ser.write(("\r\n").encode())
+    time.sleep(2)
+
 
     def send_command(command, wait_time=3):
         print(f"Envoi: {command}")

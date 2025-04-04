@@ -91,6 +91,10 @@ try:
     print(f"\\nOuverture du port série {port_com}...")
     ser = serial.Serial(port_com, int(baudrate), timeout=1)
     time.sleep(5) # Pause pour stabiliser la connexion
+    # Envoyer une ligne vide pour réveiller le routeur
+    ser.write(("\\r\\n").encode())
+    time.sleep(2)
+
 
     def send_command(command, wait_time=3):
         print(f"Envoi: {command}")
