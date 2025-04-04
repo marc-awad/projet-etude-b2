@@ -503,7 +503,82 @@ input {
   flex-direction: column;
   align-items: center;
 }
+/* Retour Button - Neon Blue Style with Curved Undo Arrow - Fixed Position */
+#retour {
+  background: linear-gradient(
+    45deg,
+    var(--gradient-start),
+    var(--gradient-1),
+    var(--gradient-3),
+    var(--gradient-1)
+  );
+  background-size: 300% 300%;
+  animation: gradientAnimation 6s ease infinite;
+  color: #0f1520;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 0 4px var(--primary-color),
+    0 0 5px var(--primary-color),
+    0 0 2px rgba(0, 162, 255, 0.8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  
+  /* Fixed positioning at top left */
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000; /* Ensure it stays above other elements */
+  
+  margin: 0; /* Remove margin since we're using fixed positioning */
+}
 
+#retour::after {
+  content: "↩";  /* Unicode curved arrow for undo */
+  margin-left: 8px;
+  font-size: 1.4rem;
+  font-weight: bold;
+  transition: transform var(--transition-fast);
+}
+
+#retour:hover {
+  box-shadow: 0 0 8px var(--primary-color), 
+              0 0 15px var(--primary-color);  /* Reduced light intensity */
+  transform: scale(1.03);  /* Slightly reduced scale effect */
+  background-position: 100% 50%;
+}
+
+#retour:hover::after {
+  transform: scale(1.2);  /* Make the arrow slightly larger on hover */
+}
+
+#retour:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-sm), 0 0 5px var(--primary-color);
+  opacity: 0.9;
+}
+
+/* For mobile responsiveness */
+@media screen and (max-width: 480px) {
+  #retour {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    top: 10px;
+    left: 10px;
+  }
+  
+  #retour::after {
+    font-size: 1.2rem;
+  }
+}
 #boxzone {
   width: 100%;
   background-color: var(--card-bg);
