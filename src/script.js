@@ -1027,7 +1027,7 @@ envoyer.addEventListener("click", () => {
       buttonContainer.appendChild(routeurButton2)
 
       let footer = document.querySelector("footer")
-        // Ajouter le conteneur à la fin du body
+      // Ajouter le conteneur à la fin du body
       document.body.insertBefore(buttonContainer, footer)
     }
     const additionalStyle = document.createElement("style")
