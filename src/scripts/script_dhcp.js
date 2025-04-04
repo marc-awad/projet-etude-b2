@@ -261,7 +261,6 @@ export function saveScriptToFile(script, filename = "dhcp-scopes.ps1") {
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     generateDhcpScript,
-    generateDhcpScriptFromCalculator,
     saveScriptToFile,
   }
 }

@@ -13,7 +13,7 @@
   --accent-color: #00e5ff;
 
   /* Neutrals - Dark Theme */
-  --bg-color: #0f1520;
+  --bg-color: #161d2a;
   --card-bg: #1a2030;
   --input-bg: #141a25;
   --text-primary: #e2e8f0;
@@ -54,6 +54,14 @@
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+img {
+  width: 8%;
+  height: auto;
+  display: block;
+  margin-top: 1rem;
+  margin-bottom: 1.6rem;
+  filter: drop-shadow(0 0 5px rgba(118, 212, 255, 0.8));
 }
 @keyframes gradientAnimation {
   0% {

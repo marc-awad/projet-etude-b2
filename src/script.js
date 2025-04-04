@@ -897,7 +897,7 @@ envoyer.addEventListener("click", () => {
         th.textContent = headerText
         headerRow.appendChild(th)
       })
-
+      
       thead.appendChild(headerRow)
       table.appendChild(thead)
 
