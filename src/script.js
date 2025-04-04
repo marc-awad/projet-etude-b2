@@ -27,6 +27,7 @@ let body = document.getElementById("body")
 // element dont l'apparence vont changer
 let inputs = document.getElementById("inputs")
 let boxadresses = document.getElementById("boxadresses")
+let retour = document.getElementById("retour")
 
 // initialisation de variables à 0
 let nextadress = 0
@@ -220,77 +221,7 @@ function inputbox() {
     }
   })
 }
-
-function resultbox(netadress, mask, first, last, broadcast, cidr, name) {
-  // div pour mettre tout les resultats
-
-  let resultbox = document.createElement("div")
-  resultbox.setAttribute("id", "resultbox")
-  // affichage du nom du sous reseau
-  let resultname = document.createElement("p")
-  resultname.setAttribute("id", "resultname")
-  resultname.textContent = name
-  if (plusdereseau) {
-    let plusdereseauchar = document.createElement("p")
-    plusdereseauchar.setAttribute("id", "plusdereseauchar")
-    plusdereseauchar.textContent =
-      "il n'y a pas assez d'adresse pour ce sous reseau"
-    resultbox.appendChild(resultname)
-    resultbox.appendChild(plusdereseauchar)
-  } else {
-    // div pour la premiere ligne de resultat
-    let resultfirstline = document.createElement("div")
-    resultfirstline.setAttribute("id", "resultfirstline")
-    resultfirstline.setAttribute("class", "line")
-
-    // div pour la deuxième ligne de resultat
-    let resultsecondline = document.createElement("div")
-    resultsecondline.setAttribute("id", "resultsecondline")
-    resultsecondline.setAttribute("class", "line")
-
-    // affichage du prochain reseau
-    let resultadress = document.createElement("p")
-    resultadress.setAttribute("id", "resultadress")
-    resultadress.textContent = "adresse du reseau : " + netadress.join(".")
-
-    // affichage du masque
-    let resultmask = document.createElement("p")
-    resultmask.setAttribute("id", "resultmask")
-    resultmask.textContent = "masque : " + mask.join(".")
-
-    // affichage de la premiere adresse exploitable
-    let resultfirst = document.createElement("p")
-    resultfirst.setAttribute("id", "resultfirst")
-    resultfirst.textContent =
-      "première adresse exploitable : " + first.join(".")
-
-    // affichage de la derniere adresse exploitable
-    let resultlast = document.createElement("p")
-    resultlast.setAttribute("id", "resultlast")
-    resultlast.textContent = "dernière adresse exploitable : " + last.join(".")
-
-    // affichage de l'adresse de broadcast
-    let resultbroadcast = document.createElement("p")
-    resultbroadcast.setAttribute("id", "resultbroadcast")
-    resultbroadcast.textContent = "broadcast : " + broadcast.join(".")
-
-    // affichage du cidr
-    let resultcidr = document.createElement("p")
-    resultcidr.setAttribute("id", "resultcidr")
-    resultcidr.textContent = "cidr : /" + cidr
-
-    resultfirstline.appendChild(resultadress)
-    resultfirstline.appendChild(resultmask)
-    resultfirstline.appendChild(resultcidr)
-    resultsecondline.appendChild(resultfirst)
-    resultsecondline.appendChild(resultlast)
-    resultsecondline.appendChild(resultbroadcast)
-    resultbox.appendChild(resultname)
-    resultbox.appendChild(resultfirstline)
-    resultbox.appendChild(resultsecondline)
-  }
-  boxzone.appendChild(resultbox)
-}
+retour.style.display = "none"
 para.style.display = "none"
 // Fermer la boîte
 function closeBoxzone() {
@@ -305,7 +236,6 @@ function openBoxzone() {
   // Si la boîte est complètement cachée (display: none)
   if (boxzone.style.display === "none") {
     boxzone.style.display = "block"
-
     // Petit délai pour permettre au navigateur de traiter le changement
     setTimeout(() => {
       boxzone.classList.remove("closing")
@@ -381,7 +311,11 @@ valider.addEventListener("click", () => {
     envoyer.style.display = "block"
   }
 })
-
+retour.addEventListener("click", () => {
+  // Reload the page without showing the refresh
+  window.location.reload(true);
+});
+  
 // bouton permettant de valider les informations et de calculer les adresses
 envoyer.addEventListener("click", () => {
   // Réinitialiser le tableau des résultats pour une nouvelle exécution
@@ -389,6 +323,7 @@ envoyer.addEventListener("click", () => {
   nbadress = 0 // Ajouter cette ligne
   plusdereseau = false
   alrdnomore = false
+  
   setTimeout(() => {
     window.scrollTo({
       top: document.body.scrollHeight,
@@ -1045,7 +980,7 @@ envoyer.addEventListener("click", () => {
 
     // Ajouter du CSS pour le tableau de résultats
     const style = document.createElement("style")
-
+    retour.style.display = "block"
     document.head.appendChild(style)
     createActionButtons()
   }
