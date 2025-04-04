@@ -62,14 +62,7 @@ try {
     Write-Host "Erreur lors de l'installation du rôle DHCP: $_" -ForegroundColor Red
     exit
 }
-Write-Host "nInstallation du rôle DNS et des outils d'administration..." -ForegroundColor Cyan
-try {
-    Install-WindowsFeature DNS -IncludeManagementTools -ErrorAction Stop
-    Write-Host "Rôle DNS installé avec succès." -ForegroundColor Green
-} catch {
-    Write-Host "Erreur lors de l'installation du rôle DNS: $_" -ForegroundColor Red
-    exit
-}
+
 try {
     $dhcpService = Get-Service DHCPServer -ErrorAction Stop
     if ($dhcpService.Status -ne "Running") {
