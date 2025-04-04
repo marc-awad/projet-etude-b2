@@ -32,7 +32,7 @@ available_networks = [
         'nom': "${network.nom}",
         'adresse_reseau': "${network.adresseReseau.join(".")}",
         'masque': "${network.masque.join(".")}",
-        'premiere_adresse': "${network.premièreAdresse.join(".")}",
+        'gateway': "${network.gateway.join(".")}",
         'cidr': ${network.cidr},
         'nombre_machines': ${network.nombreMachines}
     },\n`
@@ -78,7 +78,7 @@ while True:
         interface_name = input(f"Nom de l'interface pour {selected_network['nom']} (ex: GigabitEthernet0/1): ")
         
         # Prendre la première adresse exploitable comme adresse d'interface par défaut
-        default_ip = selected_network['premiere_adresse']
+        default_ip = selected_network['gateway']
         ip_choice = input(f"Utiliser {default_ip} comme IP d'interface? (o/n, défaut: o): ")
         
         if ip_choice.lower() != 'n':

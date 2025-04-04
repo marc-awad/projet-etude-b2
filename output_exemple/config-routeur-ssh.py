@@ -22,33 +22,17 @@ available_networks = [
         'nom': "sous_réseau1",
         'adresse_reseau': "192.168.0.0",
         'masque': "255.255.255.0",
-        'premiere_adresse': "192.168.0.1",
+        'gateway': "192.168.0.254",
         'cidr': 24,
-        'nombre_machines': 206
+        'nombre_machines': 204
     },
     {
         'nom': "sous_réseau2",
         'adresse_reseau': "192.168.1.0",
-        'masque': "255.255.255.224",
-        'premiere_adresse': "192.168.1.1",
-        'cidr': 27,
-        'nombre_machines': 23
-    },
-    {
-        'nom': "sous_réseau3",
-        'adresse_reseau': "192.168.1.32",
-        'masque': "255.255.255.240",
-        'premiere_adresse': "192.168.1.33",
-        'cidr': 28,
-        'nombre_machines': 13
-    },
-    {
-        'nom': "sous_réseau4",
-        'adresse_reseau': "192.168.1.48",
         'masque': "255.255.255.248",
-        'premiere_adresse': "192.168.1.49",
+        'gateway': "192.168.1.2",
         'cidr': 29,
-        'nombre_machines': 8
+        'nombre_machines': 5
     },
 ]
 
@@ -59,27 +43,31 @@ username = input("Nom d'utilisateur: ")
 password = getpass.getpass("Mot de passe: ")
 secret = getpass.getpass("Enable secret: ")
 
+# Configuration pour le périphérique
 device = {
     'device_type': 'cisco_ios',
     'host': host,
     'username': username,
     'password': password,
-    'secret': secret
+    'secret': secret,
+    'session_log': 'netmiko_session.log',
+    'timeout': 90,
 }
 
+# Afficher les réseaux disponibles
 print("\n=== Réseaux disponibles ===")
 for i, network in enumerate(available_networks):
     print(f"{i+1}. {network['nom']} - Réseau: {network['adresse_reseau']}/{network['cidr']} - Machines: {network['nombre_machines']}")
 
-# Configuration des interfaces pour chaque réseau souhaité
+# Configuration des interfaces
 interfaces = []
 print("\n=== Configuration des interfaces ===")
 while True:
+    choice = input("\nChoisissez un numéro de réseau (ou 'fin' pour terminer): ")
+    if choice.lower() == 'fin':
+        break
+        
     try:
-        choice = input("\nChoisissez un numéro de réseau (ou 'fin' pour terminer): ")
-        if choice.lower() == 'fin':
-            break
-            
         network_index = int(choice) - 1
         if network_index < 0 or network_index >= len(available_networks):
             print("Choix invalide. Veuillez entrer un numéro dans la liste.")
@@ -88,14 +76,11 @@ while True:
         selected_network = available_networks[network_index]
         interface_name = input(f"Nom de l'interface pour {selected_network['nom']} (ex: GigabitEthernet0/1): ")
         
-        # Prendre la première adresse exploitable comme adresse d'interface par défaut
-        default_ip = selected_network['premiere_adresse']
+        # Adresse d'interface par défaut
+        default_ip = selected_network['gateway']
         ip_choice = input(f"Utiliser {default_ip} comme IP d'interface? (o/n, défaut: o): ")
         
-        if ip_choice.lower() != 'n':
-            ip_address = default_ip
-        else:
-            ip_address = get_valid_input("Entrez une adresse IP personnalisée: ", validate_ip)
+        ip_address = default_ip if ip_choice.lower() != 'n' else get_valid_input("Entrez une adresse IP personnalisée: ", validate_ip)
             
         interfaces.append((interface_name, ip_address, selected_network['masque']))
         print(f"Interface {interface_name} configurée avec IP {ip_address}, masque {selected_network['masque']}")
@@ -109,20 +94,53 @@ if not interfaces:
 
 try:
     print(f"\nConnexion à {host}...")
+    
+    # Établissement de la connexion
     net_connect = ConnectHandler(**device)
+    print("Connexion établie!")
+    
+    # Entrer en mode enable
     net_connect.enable()
-    commands = ["configure terminal"]
-    for name, ip, mask in interfaces:
-        commands.append(f"interface {name}")
-        commands.append("no ip address")
-        commands.append(f"ip address {ip} {mask}")
-        commands.append("no shutdown")
-        commands.append("exit")
-    commands.extend(["end", "write memory"])
+    print("Mode privilégié activé.")
+
+    # Application de la configuration
     print("\nApplication de la configuration...")
-    output = net_connect.send_config_set(commands)
-    print(output)
+    
+    # Entrer en mode de configuration
+    output = net_connect.send_command_timing("configure terminal")
+    print(f"Configuration terminale: {output}")
+    
+    # Configurer chaque interface
+    for name, ip, mask in interfaces:
+        print(f"Configuration de l'interface {name}...")
+        net_connect.send_command_timing(f"interface {name}")
+        net_connect.send_command_timing("no ip address")
+        net_connect.send_command_timing(f"ip address {ip} {mask}")
+        net_connect.send_command_timing("no shutdown")
+        net_connect.send_command_timing("exit")
+        print(f"Interface {name} configurée.")
+    
+    # Sauvegarder et quitter
+    net_connect.send_command_timing("end")
+    save_output = net_connect.send_command_timing("write memory")
+    print(f"Sauvegarde de la configuration: {save_output}")
+    
+    # Vérifier la configuration
+    for name, ip, mask in interfaces:
+        print(f"\nVérification de {name}:")
+        show_output = net_connect.send_command_timing(f"show interface {name} | include protocol|address")
+        print(show_output)
+    
     net_connect.disconnect()
-    print("Configuration terminée avec succès!")
+    print("\nConfiguration terminée avec succès!")
+    
 except Exception as e:
-    print("Erreur:", e)
+    print(f"Erreur: {str(e)}")
+    print("\nConseil de dépannage: Vérifiez le fichier journal 'netmiko_session.log' pour plus de détails.")
+    
+    # Tentative de déconnexion propre en cas d'erreur
+    try:
+        if 'net_connect' in locals() and net_connect:
+            net_connect.disconnect()
+    except:
+        pass
