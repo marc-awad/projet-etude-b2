@@ -407,6 +407,7 @@ input {
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin-bottom: 1rem;
 }
 
 /* Consistent hover effect for all buttons */
@@ -480,6 +481,7 @@ input {
   animation: gradientAnimation 6s ease infinite;
   box-shadow: 0 0 4px var(--primary-color), 0 0 5px var(--primary-color),
     0 0 2px rgba(0, 162, 255, 0.8);
+    margin-bottom: 3rem;
 }
 
 #actionButtons .mainbutton:hover {
@@ -917,4 +919,9 @@ input {
 ::selection {
   background-color: rgba(0, 229, 255, 0.3);
   color: white;
+}
+
+
+#actionButtons{
+  margin-bottom: 3rem;
 }

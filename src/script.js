@@ -1,7 +1,4 @@
-import {
-  generateDhcpScript,
-  saveScriptToFile,
-} from "./scripts/script_dhcp.js"
+import { generateDhcpScript, saveScriptToFile } from "./scripts/script_dhcp.js"
 
 import { generateCiscoSerialConfigScript } from "./scripts/script_routeur_pyserial.js"
 import { generateCiscoConfigScript } from "./scripts/script_routeur_netmiko.js"
@@ -65,9 +62,7 @@ function correction(adresse) {
   return adresse
 }
 
-
-  // Mettre à jour la valeur de l'input avec les groupes corrigés
-
+// Mettre à jour la valeur de l'input avec les groupes corrigés
 
 // Add this function right after the formatInput function
 function calculateMaxHosts() {
@@ -562,11 +557,12 @@ envoyer.addEventListener("click", () => {
       }
 
       // Calculate gateway address based on gateway_position
-      let gatewayAddress = [];
+      let gatewayAddress = []
       if (gateway_position.value === "debut") {
-        gatewayAddress = [...premieradress]; // First usable address
-      } else { // "fin" or default
-        gatewayAddress = [...dernieradress]; // Last usable address
+        gatewayAddress = [...premieradress] // First usable address
+      } else {
+        // "fin" or default
+        gatewayAddress = [...dernieradress] // Last usable address
       }
 
       // Stocker tous les résultats de cette itération dans l'objet
@@ -580,7 +576,7 @@ envoyer.addEventListener("click", () => {
         cidr: maskval,
         nombreMachines: machineval,
         pasDeReseau: plusdereseau,
-        gateway: gatewayAddress // Add gateway address to results
+        gateway: gatewayAddress, // Add gateway address to results
       }
 
       // Ajouter les résultats de cette itération au tableau
@@ -611,40 +607,37 @@ envoyer.addEventListener("click", () => {
     // console.log("Résultats de tous les sous-réseaux:", resultsArray)
     const dhcpOptions = {
       serverIP: "192.168.100.10", // Default value - could be derived from network calculation
-      defaultGateway: resultsArray.length > 0 ? resultsArray[0].gateway.join(".") : "192.168.100.1",
+      defaultGateway:
+        resultsArray.length > 0
+          ? resultsArray[0].gateway.join(".")
+          : "192.168.100.1",
       networkInterfaceAlias: "Ethernet",
       includeDnsServer: true,
       dnsServerPrimary: dns_primaire.value || "8.8.8.8",
       dnsServerSecondary: dns_secondaire.value || "",
       ntpServer: serveur_ntp.value || "",
-      domainName: nom_domaine.value || ""
+      domainName: nom_domaine.value || "",
     }
 
     // Générer le script DHCP à partir des résultats
     const dhcpScript = generateDhcpScript(resultsArray, dhcpOptions)
-    
+
     // Pass the new parameters to the Cisco script generators
-    const pythonScriptConsole = generateCiscoSerialConfigScript(
-      resultsArray, 
-      {
-        gatewayPosition: gateway_position.value,
-        ntpServer: serveur_ntp.value,
-        dnsServerPrimary: dns_primaire.value,
-        dnsServerSecondary: dns_secondaire.value,
-        domainName: nom_domaine.value
-      }
-    )
-    
-    const pythonScriptSSH = generateCiscoConfigScript(
-      resultsArray,
-      {
-        gatewayPosition: gateway_position.value,
-        ntpServer: serveur_ntp.value,
-        dnsServerPrimary: dns_primaire.value,
-        dnsServerSecondary: dns_secondaire.value,
-        domainName: nom_domaine.value
-      }
-    )
+    const pythonScriptConsole = generateCiscoSerialConfigScript(resultsArray, {
+      gatewayPosition: gateway_position.value,
+      ntpServer: serveur_ntp.value,
+      dnsServerPrimary: dns_primaire.value,
+      dnsServerSecondary: dns_secondaire.value,
+      domainName: nom_domaine.value,
+    })
+
+    const pythonScriptSSH = generateCiscoConfigScript(resultsArray, {
+      gatewayPosition: gateway_position.value,
+      ntpServer: serveur_ntp.value,
+      dnsServerPrimary: dns_primaire.value,
+      dnsServerSecondary: dns_secondaire.value,
+      domainName: nom_domaine.value,
+    })
 
     // Fonctions pour les nouveaux boutons (à ajouter juste avant le dernier crochet fermant)
 
@@ -699,7 +692,7 @@ envoyer.addEventListener("click", () => {
         tempDiv.style.position = "absolute"
         tempDiv.style.left = "-9999px"
         document.body.appendChild(tempDiv)
-        
+
         tempDiv.innerHTML = `
           <div id="pdf-content" style="padding: 20px; background-color: white; color: black; font-family: Arial, sans-serif;">
               <h1 style="text-align: center; color: black; text-shadow: none;">Résultats du découpage VLSM</h1>
@@ -897,7 +890,7 @@ envoyer.addEventListener("click", () => {
         th.textContent = headerText
         headerRow.appendChild(th)
       })
-      
+
       thead.appendChild(headerRow)
       table.appendChild(thead)
 
@@ -1033,8 +1026,9 @@ envoyer.addEventListener("click", () => {
       buttonContainer.appendChild(routeurButton)
       buttonContainer.appendChild(routeurButton2)
 
-      // Ajouter le conteneur à la fin du body
-      body.appendChild(buttonContainer)
+      let footer = document.querySelector("footer")
+        // Ajouter le conteneur à la fin du body
+      document.body.insertBefore(buttonContainer, footer)
     }
     const additionalStyle = document.createElement("style")
 
