@@ -1,20 +1,20 @@
 import {
   generateDhcpScript,
-  generateDhcpScriptFromCalculator,
   saveScriptToFile,
 } from "./scripts/script_dhcp.js"
 
 import { generateCiscoSerialConfigScript } from "./scripts/script_routeur_pyserial.js"
 import { generateCiscoConfigScript } from "./scripts/script_routeur_netmiko.js"
-// les boutons
+// Update the inputs section to get values when needed instead of on page load
 let valider = document.getElementById("valider1")
 let envoyer = document.getElementById("envoyer")
 
-// les inputs
+// the inputs
 let adress = document.getElementById("adress")
 let sous_reseaux = document.getElementById("sous_reseaux")
 let inputcidr = document.getElementById("inputcidr")
 let marge = document.getElementById("marge")
+// Reference the DOM elements without getting their values immediately
 let dns_primaire = document.getElementById("dns_primaire")
 let dns_secondaire = document.getElementById("dns_secondaire")
 let gateway_position = document.getElementById("gateway_position")
@@ -64,50 +64,11 @@ function correction(adresse) {
   }
   return adresse
 }
-function formatInput(input) {
-  // Supprimer tous les caractères non numériques et non points
-  let value = input.value.replace(/[^\d.]/g, "")
 
-  // Supprimer les points excédentaires
-  value = value.replace(/\.{2,}/g, ".")
-
-  // Insérer un point après chaque groupe de trois chiffres
-  value = value.replace(/(\d{3})(?=\d)/g, "$1.")
-
-  // Limiter à quatre groupes de trois chiffres
-  let groups = value.split(".")
-  groups = groups.slice(0, 4)
-
-  if (groups.length === 4 && groups[3].charAt(0) === "0") {
-    groups[3] = "0"
-  }
-
-  // Ajouter un point après un '0' si c'est le premier caractère du groupe
-  value = groups.join(".").replace(/(?<=^|\.)0(?=\d)/g, "0.")
-
-  // Limiter à quinze caractères (quatre groupes de trois chiffres et trois points)
-  value = value.substring(0, 15)
-
-  // Si la longueur de la valeur dépasse 12 (quatre groupes de trois chiffres)
-  // et si le dernier caractère est un point, supprimez-le
-  if (value.length > 12 && value.charAt(value.length - 1) === ".") {
-    value = value.substring(0, value.length - 1)
-  }
-
-  // Corriger si une valeur dépasse 255 ou devient inférieure à 0
-  let group = value.split(".")
-  for (let i = 0; i < group.length; i++) {
-    if (group[i] > 255) {
-      group[i] = "255"
-    }
-    if (group[i] < 0) {
-      group[i] = "0"
-    }
-  }
 
   // Mettre à jour la valeur de l'input avec les groupes corrigés
-  input.value = group.join(".")
-}
+
+
 // Add this function right after the formatInput function
 function calculateMaxHosts() {
   if (inputcidr.value.length > 1) {
@@ -600,6 +561,14 @@ envoyer.addEventListener("click", () => {
         plusdereseau = true
       }
 
+      // Calculate gateway address based on gateway_position
+      let gatewayAddress = [];
+      if (gateway_position.value === "debut") {
+        gatewayAddress = [...premieradress]; // First usable address
+      } else { // "fin" or default
+        gatewayAddress = [...dernieradress]; // Last usable address
+      }
+
       // Stocker tous les résultats de cette itération dans l'objet
       iterationResult = {
         nom: netname,
@@ -611,6 +580,7 @@ envoyer.addEventListener("click", () => {
         cidr: maskval,
         nombreMachines: machineval,
         pasDeReseau: plusdereseau,
+        gateway: gatewayAddress // Add gateway address to results
       }
 
       // Ajouter les résultats de cette itération au tableau
@@ -640,17 +610,41 @@ envoyer.addEventListener("click", () => {
     // Afficher le tableau des résultats dans la console pour vérification
     // console.log("Résultats de tous les sous-réseaux:", resultsArray)
     const dhcpOptions = {
-      serverIP: "192.168.100.10",
-      defaultGateway: "192.168.100.1",
+      serverIP: "192.168.100.10", // Default value - could be derived from network calculation
+      defaultGateway: resultsArray.length > 0 ? resultsArray[0].gateway.join(".") : "192.168.100.1",
       networkInterfaceAlias: "Ethernet",
       includeDnsServer: true,
-      dnsServerIP: "8.8.8.8",
+      dnsServerPrimary: dns_primaire.value || "8.8.8.8",
+      dnsServerSecondary: dns_secondaire.value || "",
+      ntpServer: serveur_ntp.value || "",
+      domainName: nom_domaine.value || ""
     }
 
     // Générer le script DHCP à partir des résultats
     const dhcpScript = generateDhcpScript(resultsArray, dhcpOptions)
-    const pythonScriptConsole = generateCiscoSerialConfigScript(resultsArray)
-    const pythonScriptSSH = generateCiscoConfigScript(resultsArray)
+    
+    // Pass the new parameters to the Cisco script generators
+    const pythonScriptConsole = generateCiscoSerialConfigScript(
+      resultsArray, 
+      {
+        gatewayPosition: gateway_position.value,
+        ntpServer: serveur_ntp.value,
+        dnsServerPrimary: dns_primaire.value,
+        dnsServerSecondary: dns_secondaire.value,
+        domainName: nom_domaine.value
+      }
+    )
+    
+    const pythonScriptSSH = generateCiscoConfigScript(
+      resultsArray,
+      {
+        gatewayPosition: gateway_position.value,
+        ntpServer: serveur_ntp.value,
+        dnsServerPrimary: dns_primaire.value,
+        dnsServerSecondary: dns_secondaire.value,
+        domainName: nom_domaine.value
+      }
+    )
 
     // Fonctions pour les nouveaux boutons (à ajouter juste avant le dernier crochet fermant)
 
@@ -705,7 +699,7 @@ envoyer.addEventListener("click", () => {
         tempDiv.style.position = "absolute"
         tempDiv.style.left = "-9999px"
         document.body.appendChild(tempDiv)
-
+        
         tempDiv.innerHTML = `
           <div id="pdf-content" style="padding: 20px; background-color: white; color: black; font-family: Arial, sans-serif;">
               <h1 style="text-align: center; color: black; text-shadow: none;">Résultats du découpage VLSM</h1>
