@@ -459,6 +459,7 @@ input {
   animation: gradientAnimation 6s ease infinite;
   box-shadow: var(--shadow-md), 0 0 5px var(--primary-color);
   margin: 1.5rem auto;
+  margin-right: 10rem;
 }
 
 #buttonadd:hover {
