@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Découpage VLSM</title>
+    <title>NetSlicer Découpeur VLSM</title>
     <link rel="icon" type="image/png" href="src/img/logo_reseau.png" />
-    <link rel="stylesheet" href="src/vlsm.css" />
+    <link rel="stylesheet" href="src/style.css" />
   </head>
 
   <body id="body">
@@ -111,6 +111,13 @@
       </div>
       <button id="envoyer" class="mainbutton">Envoyer</button>
     </div>
+    <footer>
+      <p>
+        &copy; 2025 Netslicer<br />
+        Tous droits réservés.
+      </p>
+    </footer>
+
     <script>
       function correction(adresse) {
         for (let i = 3; i > 0; i--) {
@@ -187,6 +194,6 @@
         }
       })
     </script>
-    <script type="module" src="src/vlsm.js"></script>
+    <script type="module" src="src/script.js"></script>
   </body>
 </html>
