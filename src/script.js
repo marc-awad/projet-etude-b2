@@ -97,7 +97,7 @@ inputcidr.addEventListener("input", () => {
     inputcidr.value = inputcidr.value.substring(0, 3)
   }
   if (
-    inputcidr.value[1] + inputcidr.value[2] > "32" ||
+    inputcidr.value[1] + inputcidr.value[2] > "30" ||
     inputcidr.value[2] === "/"
   ) {
     inputcidr.value = "/" + inputcidr.value[1]
