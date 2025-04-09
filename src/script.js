@@ -539,7 +539,7 @@ envoyer.addEventListener("click", () => {
     }
 
     // Afficher le tableau des résultats dans la console pour vérification
-    // console.log("Résultats de tous les sous-réseaux:", resultsArray)
+    console.log("Résultats de tous les sous-réseaux:", resultsArray)
     const dhcpOptions = {
       serverIP: "192.168.100.10", // Default value - could be derived from network calculation
       defaultGateway:
